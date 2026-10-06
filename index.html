@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Herbier du Saut de la Brame</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,600;0,700;1,400;1,500&family=Alegreya+SC:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* Affiche d'herbier : papier rosé, trait prune, une seule palette assumée (pas de thème sombre) */
+  :root {
+    --bg: #F9EFEF;
+    --paper: #FDF8F7;
+    --ink: #4F3B55;
+    --muted: #86718B;
+    --rose: #C77F95;
+    --line: rgba(79, 59, 85, 0.22);
+
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+    --serif: "Alegreya", Georgia, "Times New Roman", serif;
+    --sc: "Alegreya SC", "Alegreya", Georgia, serif;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 400 18px/1.6 var(--serif); -webkit-font-smoothing: antialiased; }
+  svg { display: block; max-width: 100%; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  h1, h2, h3 { text-wrap: balance; }
+  :focus-visible { outline: 2px solid var(--rose); outline-offset: 3px; border-radius: 4px; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding-inline: 24px; }
+
+  .demo-flag { background: var(--ink); color: var(--paper); text-align: center; font-size: 14px; padding: 6px 12px; }
+
+  /* En-tête */
+  header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+  .bar { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 16px; }
+  .logo { font-style: italic; font-weight: 500; font-size: 22px; color: var(--ink); text-decoration: none; white-space: nowrap; }
+  nav { display: flex; gap: 24px; }
+  .bar nav { margin-left: auto; }
+  nav a { color: var(--muted); text-decoration: none; font-family: var(--sc); font-size: 16px; white-space: nowrap; transition: color 150ms ease; }
+  @media (hover: hover) and (pointer: fine) { nav a:hover { color: var(--ink); } }
+
+  /* Hero encadré comme l'affiche */
+  .hero { margin: 36px auto 0; border: 1.5px solid var(--ink); padding: 6px; border-radius: 4px; }
+  .hero-inner { border: 1px solid var(--line); border-radius: 2px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center; padding: 48px 48px 28px; background: var(--paper); }
+  .kicker { font-family: var(--sc); color: var(--muted); font-size: 16px; letter-spacing: 0.04em; margin: 0 0 10px; }
+  .hero h1 { font-style: italic; font-weight: 500; font-size: clamp(44px, 6.4vw, 80px); line-height: 1; margin: 0 0 18px; letter-spacing: -0.01em; }
+  .divider { display: flex; align-items: center; gap: 8px; width: 170px; margin: 0 0 18px; }
+  .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--ink); opacity: 0.5; }
+  .divider span { width: 10px; height: 10px; background: #F2B6C6; border: 1px solid var(--ink); transform: rotate(45deg); }
+  .divider.center { margin-inline: auto; }
+  .tagline { font-style: italic; font-size: 22px; margin: 0 0 28px; color: var(--muted); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; background: var(--ink); color: var(--paper); border: 0; border-radius: 999px; padding: 12px 26px; font-size: 17px; font-weight: 600; text-decoration: none; transition: transform 120ms var(--ease-out), background-color 150ms ease; }
+  .btn:active { transform: scale(0.97); }
+  @media (hover: hover) and (pointer: fine) { .btn:hover { background: #6A5171; } }
+
+  /* Moment orchestré : les produits se posent, puis les fleurs poussent */
+  .hero-text > * { animation: rise 700ms var(--ease-out) both; }
+  .hero-text > *:nth-child(2) { animation-delay: 50ms; }
+  .hero-text > *:nth-child(3) { animation-delay: 100ms; }
+  .hero-text > *:nth-child(4) { animation-delay: 150ms; }
+  .hero-text > *:nth-child(5) { animation-delay: 200ms; }
+  .hero-text > *:nth-child(6) { animation-delay: 250ms; }
+  .item { animation: rise 900ms var(--ease-out) both; transform-box: fill-box; }
+  .stem { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 800ms var(--ease-out) forwards; }
+  .bloom, .leaf { transform-box: fill-box; transform-origin: center; animation: bloom 650ms var(--ease-out) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @keyframes bloom { from { opacity: 0; transform: scale(0.6) rotate(-20deg); } to { opacity: 1; transform: none; } }
+
+  /* Catalogue */
+  .shop { padding-block: 56px 72px; }
+  .shop-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 36px; }
+  .shop-head h2, .sec-title { font-style: italic; font-weight: 500; font-size: 40px; margin: 0; line-height: 1.05; }
+  .tabs { position: relative; display: flex; gap: 2px; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 4px; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { position: relative; z-index: 1; background: none; border: 0; border-radius: 999px; padding: 6px 16px; font-family: var(--sc); font-size: 16px; color: var(--muted); white-space: nowrap; transition: color 200ms ease; }
+  .tab[aria-selected="true"] { color: var(--paper); }
+  .indicator { position: absolute; top: 4px; left: 0; height: calc(100% - 8px); background: var(--ink); border-radius: 999px; transition: transform 280ms var(--ease-in-out); }
+
+  .catalog { transition: opacity 180ms ease, transform 180ms var(--ease-out); }
+  .catalog.is-changing { opacity: 0; transform: translateY(6px); }
+
+  .cat { background: var(--panel); border: 1px solid var(--line); border-radius: 48px 48px 14px 14px; padding: 32px 28px 28px; margin-bottom: 28px; }
+  .cat-head { text-align: center; margin-bottom: 24px; }
+  .cat-head h3 { font-style: italic; font-weight: 500; font-size: 38px; margin: 0; line-height: 1.1; }
+  .ribbon { display: inline-block; margin-top: 6px; background: var(--ribbon); font-family: var(--sc); font-size: 15px; padding: 3px 28px; clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 50%, 100% 100%, 0 100%, 12px 50%); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px; }
+  .product { display: flex; flex-direction: column; background: var(--paper); border-radius: 40px 40px 10px 10px; padding: 18px 16px 16px; }
+  .stage { height: 150px; display: grid; place-items: center; margin-bottom: 10px; }
+  .stage svg { height: 100%; width: auto; transition: transform 350ms var(--ease-out); }
+  @media (hover: hover) and (pointer: fine) { .product:not(.off):hover .stage svg { transform: translateY(-5px) rotate(-2deg); } }
+  .product h4 { margin: 0; font-weight: 700; font-size: 18px; line-height: 1.3; }
+  .ing { margin: 4px 0 0; font-style: italic; font-size: 15px; color: var(--muted); line-height: 1.4; }
+  .status { font-style: italic; font-size: 15px; color: var(--rose); }
+  .row { margin-top: auto; padding-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .price { font-weight: 700; }
+  .add { background: none; border: 1px solid var(--ink); border-radius: 999px; padding: 5px 14px; font-size: 15px; font-weight: 600; transition: transform 120ms var(--ease-out), background-color 150ms ease, color 150ms ease; }
+  .add:active { transform: scale(0.97); }
+  @media (hover: hover) and (pointer: fine) { .add:hover { background: var(--ink); color: var(--paper); } }
+  .off .stage svg { opacity: 0.45; }
+
+  /* Engagement */
+  .promise { text-align: center; padding: 56px 24px 64px; border-top: 1px solid var(--line); }
+  .promise p.big { font-style: italic; font-size: clamp(30px, 4.4vw, 44px); margin: 0 0 6px; line-height: 1.15; }
+  .promise p.small { font-family: var(--sc); color: var(--muted); margin: 0; }
+
+  /* L'histoire */
+  .story { padding-block: 64px 72px; border-top: 1px solid var(--line); background: var(--paper); }
+  .story-inner { max-width: 64ch; margin: 0 auto; }
+  .story header, .story-head { text-align: center; margin-bottom: 36px; }
+  .story-head .sec-title { font-size: clamp(32px, 4.6vw, 46px); margin-bottom: 18px; }
+  .story p { margin: 0 0 1.05em; text-wrap: pretty; }
+  .story p.lede { font-style: italic; font-size: 24px; line-height: 1.4; text-align: center; margin-bottom: 1.4em; }
+  .story h3 { font-style: italic; font-weight: 500; font-size: 30px; line-height: 1.15; margin: 1.6em 0 0.6em; display: flex; align-items: center; gap: 14px; }
+  .story h3::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .story .roots { margin: 2em 0 0; padding: 28px 8px 0; border-top: 1px solid var(--line); text-align: center; font-style: italic; font-size: clamp(22px, 3vw, 28px); line-height: 1.35; }
+
+
+  /* Planches photo, montées comme des feuillets d'herbier */
+  .plate { position: relative; left: 50%; transform: translateX(-50%); width: min(920px, calc(100vw - 48px)); margin: 2.2em 0; display: grid; gap: 16px; }
+  .plate.pair { grid-template-columns: 1fr 1fr; width: min(780px, calc(100vw - 48px)); }
+  .plate figure { margin: 0; min-width: 0; background: #FFFFFF; border: 1px solid var(--line); padding: 10px 10px 0; box-shadow: 0 1px 2px rgba(79,59,85,.08), 0 8px 24px -12px rgba(79,59,85,.25); }
+  .plate img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; background: var(--bg); }
+  .plate.pair img { aspect-ratio: 4 / 5; }
+  .plate.cine img { aspect-ratio: 16 / 9; }
+  .plate figcaption { font-style: italic; color: var(--muted); font-size: 16px; text-align: center; padding: 8px 4px 10px; line-height: 1.3; }
+  @media (max-width: 860px) { .plate { width: calc(100vw - 32px); gap: 10px; } .plate.pair { width: calc(100vw - 32px); } .plate figure { padding: 6px 6px 0; } .plate figcaption { font-size: 14px; } }
+
+  /* Points de vente */
+  .stockists { padding-block: 64px 72px; border-top: 1px solid var(--line); }
+  .sec-head { text-align: center; margin-bottom: 32px; }
+  .sec-head .lead { color: var(--muted); font-style: italic; margin: 8px 0 0; }
+  .shops { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+  .shop-card { position: relative; display: flex; flex-direction: column; gap: 2px; background: var(--panel); border: 1px solid var(--line); border-radius: 28px 28px 10px 10px; padding: 18px 64px 18px 20px; transition: transform 250ms var(--ease-out); }
+  @media (hover: hover) and (pointer: fine) { .shop-card:hover { transform: translateY(-3px) rotate(-0.4deg); } }
+  .shop-card .sprig { position: absolute; top: 12px; right: 14px; width: 44px; height: 44px; }
+  .shop-card .where .town { background: var(--ribbon); padding: 2px 18px; clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 50%, 100% 100%, 0 100%, 9px 50%); }
+  .shop-card h3 { margin: 0; font-weight: 700; font-size: 19px; line-height: 1.3; }
+  .shop-card .what { margin: 0; color: var(--muted); font-style: italic; font-size: 16px; line-height: 1.4; }
+  .shop-card .where { margin: auto -44px 0 0; padding-top: 12px; font-family: var(--sc); font-size: 15px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tag { font-family: var(--sc); font-size: 14px; background: #C5DAEF; padding: 2px 16px; clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 50%, 100% 100%, 0 100%, 9px 50%); }
+  .tag.season { background: #F2B6C6; }
+  .tag.passed { background: #E3E1EA; }
+
+  /* Contact */
+  .contact { padding-block: 0 72px; }
+  .contact-card { display: grid; grid-template-columns: 1.1fr 1fr; gap: 32px; background: #F1E7F1; border: 1px solid var(--line); border-radius: 48px 48px 14px 14px; padding: 40px 44px; }
+  .contact-card > * { min-width: 0; }
+  .contact-card .sec-title { margin-bottom: 14px; }
+  .contact-card p { margin: 0 0 12px; }
+  .contact-card .call { font-style: italic; font-size: 22px; line-height: 1.4; }
+  .details { margin: 0; display: grid; gap: 14px; background: var(--paper); border-radius: 28px 28px 10px 10px; padding: 22px 24px; align-self: start; }
+  .details dt { font-family: var(--sc); color: var(--muted); font-size: 15px; letter-spacing: 0.03em; }
+  .details dd { margin: 0; font-size: 19px; overflow-wrap: anywhere; }
+  .details .phone { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .details .soon { color: var(--muted); font-style: italic; font-size: 17px; }
+
+  footer { padding-block: 28px 48px; color: var(--muted); font-size: 15px; border-top: 1px solid var(--line); }
+  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  footer a { color: inherit; }
+
+  .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 60; background: var(--ink); color: var(--paper); padding: 10px 20px; border-radius: 999px; font-size: 16px; transform: translate(-50%, 140%); opacity: 0; transition: transform 320ms var(--ease-out), opacity 200ms ease; }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+  .logo .short { display: none; }
+
+  @media (max-width: 860px) {
+    .wrap { padding-inline: 16px; }
+    nav a.opt { display: none; }
+    nav { gap: 16px; }
+    nav a { font-size: 15px; }
+    .logo .full { display: none; }
+    .logo .short { display: inline; }
+    .hero { margin-top: 20px; }
+    .hero-inner { grid-template-columns: 1fr; padding: 32px 22px 18px; }
+    .cat { padding: 26px 14px 16px; border-radius: 36px 36px 12px 12px; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .contact-card { grid-template-columns: 1fr; padding: 30px 20px 20px; border-radius: 36px 36px 12px 12px; gap: 20px; }
+    .story p.lede { font-size: 21px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-text > *, .item, .bloom, .leaf { animation: fade 300ms ease both; }
+    .stem { stroke-dashoffset: 0; animation: none; }
+    @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+    .catalog.is-changing { transform: none; }
+    .toast { transform: translate(-50%, 0); transition: opacity 200ms ease; }
+    .stage svg, .indicator { transition: none; }
+  }
+
+  /* ---------- Vues et thème hivernal ---------- */
+  body { transition: background-color 500ms ease, color 500ms ease; }
+  body.hiver { --bg: #EDF0F7; --paper: #FAFBFE; --ink: #3D3A5C; --muted: #77759A; --rose: #B0879F; --line: rgba(61, 58, 92, 0.2); }
+  nav a[aria-current="page"] { color: var(--ink); text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 1px; }
+  .view { transition: opacity 180ms ease, transform 180ms var(--ease-out); }
+  .view.leaving { opacity: 0; transform: translateY(6px); }
+  .hero-link { display: block; margin-top: 16px; color: var(--muted); font-style: italic; font-size: 17px; }
+
+  .w-hero { margin: 36px auto 0; border: 1.5px solid var(--ink); padding: 6px; border-radius: 4px; }
+  .w-inner { position: relative; overflow: hidden; border-radius: 2px; color: #F4EFFA; background: linear-gradient(180deg, #37324F 0%, #57507C 100%); padding: 52px 48px 0; min-height: 460px; display: flex; flex-direction: column; justify-content: space-between; }
+  .w-inner canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .w-text { position: relative; z-index: 1; max-width: 640px; }
+  .w-text .kicker { color: #CFC6E6; }
+  .w-text h1 { font-style: italic; font-weight: 500; font-size: clamp(40px, 5.6vw, 68px); line-height: 1.02; margin: 0 0 16px; }
+  .w-text .tagline { color: #DAD3EC; margin: 0 0 22px; font-size: 20px; max-width: 42ch; }
+  .countdown { display: inline-block; line-height: 1.5; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); border-radius: 999px; padding: 6px 16px; font-size: 16px; }
+  .countdown b { font-size: 20px; font-style: italic; font-weight: 500; white-space: nowrap; }
+  .forest { position: relative; z-index: 1; margin: 20px -48px 0; }
+  .moon { position: absolute; right: 9%; top: 44px; width: 70px; height: 70px; border-radius: 50%; background: #F6EDD2; box-shadow: 0 0 0 14px rgba(246,237,210,0.08), 0 0 0 30px rgba(246,237,210,0.05); }
+
+  .w-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 32px; padding-block: 44px 40px; align-items: start; }
+  .w-grid > * { min-width: 0; }
+  .map-wrap { position: sticky; top: 88px; background: var(--paper); border: 1px solid var(--line); border-radius: 48px 48px 14px 14px; padding: 26px 22px 18px; }
+  .map-wrap h2, .w-list h2, .fetes h2 { font-style: italic; font-weight: 500; font-size: 34px; margin: 0 0 4px; text-align: center; line-height: 1.1; }
+  .map-wrap .sub { text-align: center; font-family: var(--sc); color: var(--muted); font-size: 15px; margin: 0 0 8px; }
+  .pin { cursor: pointer; outline: none; }
+  .pin .ring { transform-box: fill-box; transform-origin: center; transition: transform 200ms var(--ease-out), fill 200ms ease; }
+  .pin.is-active .ring, .pin:focus-visible .ring { transform: scale(1.3); fill: #F2B6C6; }
+  .pin text { font-family: var(--serif); font-size: 15px; fill: var(--ink); font-style: italic; }
+  .pin.past { opacity: 0.45; }
+
+  .w-list h2 { text-align: left; margin-bottom: 16px; }
+  .m-card { display: grid; grid-template-columns: 78px 1fr; gap: 18px; background: var(--paper); border: 1px solid var(--line); border-radius: 28px 28px 10px 10px; padding: 18px 20px; margin-bottom: 14px; transition: border-color 200ms ease; }
+  .m-card > * { min-width: 0; }
+  .m-card.is-active { border-color: var(--ink); }
+  .m-card.past { opacity: 0.55; }
+  .m-date { text-align: center; border-right: 1px solid var(--line); padding-right: 14px; }
+  .m-date .d { font-size: 42px; font-style: italic; line-height: 1; }
+  .m-date .d.range { font-size: 28px; line-height: 1.2; white-space: nowrap; }
+  .m-date .m { font-family: var(--sc); font-size: 15px; color: var(--muted); }
+  .m-card h3 { margin: 0; font-style: italic; font-weight: 500; font-size: 24px; line-height: 1.15; }
+  .m-card .name { margin: 2px 0 0; font-weight: 600; }
+  .m-card .info { margin: 2px 0 10px; color: var(--muted); font-size: 16px; }
+  .m-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .more { border: 1px dashed var(--line); border-radius: 28px 28px 10px 10px; padding: 16px 20px; color: var(--muted); font-style: italic; margin: 0; }
+  .more b { color: var(--ink); font-style: normal; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+  .fetes { padding-block: 20px 72px; }
+  .fetes .lead { text-align: center; color: var(--muted); font-style: italic; margin: 0 0 24px; }
+  .fetes .grid { max-width: 760px; margin: 0 auto; }
+
+  /* Moment orchestré de la première visite */
+  .play .w-text > * { animation: rise 700ms var(--ease-out) both; }
+  .play .w-text > *:nth-child(2) { animation-delay: 60ms; }
+  .play .w-text > *:nth-child(3) { animation-delay: 120ms; }
+  .play .w-text > *:nth-child(4) { animation-delay: 180ms; }
+  .play .moon { animation: rise 1100ms var(--ease-out) 200ms both; }
+  .play .tree { transform-box: fill-box; transform-origin: 50% 100%; animation: grow 800ms var(--ease-out) both; animation-delay: calc(var(--i) * 70ms + 150ms); }
+  .play .route { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1600ms var(--ease-in-out) 500ms forwards; }
+  .play .pin .ring, .play .pin text { transform-box: fill-box; transform-origin: center; animation: bloom 500ms var(--ease-out) both; animation-delay: var(--d); }
+  .play .m-card { animation: rise 600ms var(--ease-out) both; animation-delay: calc(var(--i) * 60ms + 300ms); }
+  @keyframes grow { from { opacity: 0; transform: translateY(10px) scaleY(0.85); } to { opacity: 1; transform: none; } }
+
+  @media (max-width: 860px) {
+    .w-inner { padding: 36px 22px 0; min-height: 420px; }
+    .forest { margin: 16px -22px 0; }
+    .moon { width: 48px; height: 48px; top: 26px; }
+    .w-grid { grid-template-columns: 1fr; }
+    .map-wrap { position: static; }
+    .m-card { grid-template-columns: 64px 1fr; gap: 14px; padding: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .view.leaving { transform: none; }
+    .play .w-text > *, .play .moon, .play .tree, .play .m-card, .play .pin .ring, .play .pin text { animation: fade 300ms ease both; }
+    .play .route { stroke-dashoffset: 0; animation: none; }
+    .pin .ring { transition: fill 200ms ease; }
+    .pin.is-active .ring, .pin:focus-visible .ring { transform: none; }
+  }
+
+  /* ---------- Couleurs ---------- */
+  :root { --lilac: #DCCBEB; --pink: #F2B6C6; --butter: #F2DE9E; --sage: #C6E1CC; --sky: #C5DAEF; --plum-deep: #3E2D44; }
+  .kicker { color: var(--rose); }
+  .shop-head h2, .sec-title { color: var(--ink); }
+  .promise { position: relative; overflow: hidden; background: linear-gradient(100deg, #F7DFE4 0%, #F1E7F1 50%, #FAF0D8 100%); border-top: 0; }
+  .promise p.big { position: relative; z-index: 1; }
+  .promise p.small { position: relative; z-index: 1; color: var(--ink); opacity: .75; }
+  .petal { display: none; position: absolute; width: 14px; height: 22px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; border: 1px solid rgba(79,59,85,.35); opacity: .9; }
+  .story { background: linear-gradient(180deg, var(--paper) 0%, #FBF3F7 60%, #F6EEF8 100%); }
+  .story p.lede { color: var(--rose); }
+  .story p.lede + p::first-letter { float: left; font-style: italic; font-size: 4.2em; line-height: .82; padding: 6px 10px 0 0; color: var(--rose); }
+  .story h3 { color: var(--ink); }
+  .story h3::before { content: ""; flex: none; width: 11px; height: 11px; background: var(--pink); border: 1px solid var(--ink); transform: rotate(45deg); }
+  .story h3::after { background: linear-gradient(90deg, var(--pink), var(--lilac) 60%, transparent); height: 2px; transform-origin: left; }
+  .story .roots { color: var(--ink); border-top: 0; background: linear-gradient(90deg, transparent, #F7DFE4 20%, #F1E7F1 80%, transparent); border-radius: 999px; padding: 26px 24px; }
+  .plate figure:nth-child(odd) { --tilt: -0.8deg; }
+  .plate figure:nth-child(even) { --tilt: 0.9deg; }
+  .plate:not(.pair) figure { --tilt: -0.4deg; }
+  .plate figure { rotate: var(--tilt); overflow: hidden; }
+  .plate img { transition: scale 600ms var(--ease-out); }
+  @media (hover: hover) and (pointer: fine) { .plate figure:hover img { scale: 1.04; } }
+  .stockists { --wash: #FBF5E6; background: var(--wash); box-shadow: 0 0 0 100vmax var(--wash); clip-path: inset(0 -100vmax); border-top: 0; }
+  .contact { padding-top: 72px; }
+  .contact-card { background: linear-gradient(135deg, #F1E7F1 0%, #F7DFE4 100%); }
+  footer { background: var(--plum-deep); color: #D9CCDD; border-top: 0; }
+  body.hiver footer { background: #2D2944; }
+  .btn { background: linear-gradient(135deg, var(--ink), #7A5A82); }
+  .tab[aria-selected="true"] { color: var(--paper); }
+  .indicator { background: linear-gradient(135deg, var(--ink), #7A5A82); }
+
+  /* ---------- Motion ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    /* Les fleurs du hero se balancent doucement une fois écloses */
+    .bloom { animation: bloom 650ms var(--ease-out) both, sway 5s ease-in-out 2s infinite alternate; }
+    .bloom:nth-of-type(2n) { animation-duration: 650ms, 6.5s; }
+    @keyframes sway { from { rotate: -4deg; } to { rotate: 4deg; } }
+
+    /* Pétales qui tombent dans le bandeau */
+    .petal { display: block; animation: fall var(--dur) linear var(--delay) infinite; top: -30px; }
+    @keyframes fall { 0% { transform: translate(0, 0) rotate(0); } 50% { transform: translate(30px, 120px) rotate(160deg); } 100% { transform: translate(-10px, 260px) rotate(340deg); } }
+
+    /* Bouton : léger reflet */
+    .btn { background-size: 200% 100%; transition: transform 120ms var(--ease-out), background-position 400ms ease; }
+    @media (hover: hover) and (pointer: fine) { .btn:hover { background-position: 100% 0; } }
+
+    /* Apparitions liées au défilement : visibles au repos, animées seulement là où c'est géré */
+    @supports (animation-timeline: view()) {
+      .product, .shop-card, .m-card, .sec-head, .story-head, .story h3, .story .roots, .contact-card, .promise p {
+        animation: rise linear both; animation-timeline: view(); animation-range: entry 0% entry 80%;
+      }
+      .plate figure { animation: pin linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
+      @keyframes pin { from { opacity: 0; transform: translateY(40px) rotate(calc(var(--tilt) * -4)); } to { opacity: 1; transform: none; } }
+      .plate img { animation: settle linear both; animation-timeline: view(); animation-range: entry 0% exit 100%; }
+      @keyframes settle { from { object-position: 50% 30%; } to { object-position: 50% 70%; } }
+      .story h3::after { animation: line linear both; animation-timeline: view(); animation-range: entry 20% cover 40%; }
+      @keyframes line { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+      .shop-card .sprig { animation: twirl linear both; animation-timeline: view(); animation-range: entry 0% cover 40%; transform-origin: 50% 90%; }
+      @keyframes twirl { from { transform: rotate(-35deg) scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
+    }
+    .shop-card .sprig { transition: rotate 400ms var(--ease-out); }
+    @media (hover: hover) and (pointer: fine) { .shop-card:hover .sprig { rotate: 18deg; } }
+  }
+
+  /* ---------- Hiver : détails ---------- */
+  :root { --holly: #B5444F; --pine: #4F7A66; --gold: #E7C873; --frost: #FFFFFF; }
+  .garland { position: absolute; top: 0; left: 0; right: 0; z-index: 2; pointer-events: none; }
+  .garland svg { width: 100%; height: auto; }
+  .stars { position: absolute; inset: 0; pointer-events: none; }
+  .star { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #FFF8E1; box-shadow: 0 0 6px 1px rgba(255,248,225,.7); }
+  .shoot { position: absolute; top: 18%; left: 20%; width: 110px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, rgba(255,255,255,0), #FFF8E1); opacity: 0; pointer-events: none; }
+  .w-inner { cursor: crosshair; }
+  @media (min-width: 861px) { .w-inner { padding-top: 80px; } }
+  .w-hero .hint { position: absolute; right: 18px; bottom: 14px; z-index: 3; font-size: 13px; font-style: italic; color: #4F4A6E; opacity: .8; }
+  .countdown .spark { display: inline-block; color: var(--gold); margin-right: 6px; }
+  .w-text .kicker { color: var(--gold); }
+
+  .snowcap { position: relative; }
+  .snowcap::before { content: ""; position: absolute; left: 22px; right: 22px; top: -7px; height: 16px; pointer-events: none;
+    background: radial-gradient(circle at 9px 6px, var(--frost) 6px, transparent 6.6px) 0 0 / 22px 16px repeat-x, radial-gradient(circle at 4px 0, var(--frost) 8px, transparent 8.6px) 0 0 / 31px 14px repeat-x;
+    filter: drop-shadow(0 2px 1px rgba(61,58,92,.12)); }
+  .map-wrap.snowcap::before { left: 40px; right: 40px; }
+  .holly { display: inline-block; width: 34px; height: 26px; vertical-align: -3px; margin-right: 8px; transform-origin: 50% 80%; }
+
+  .halo { fill: none; stroke: var(--holly); stroke-width: 2; transform-box: fill-box; transform-origin: center; }
+  .m-card .bauble { position: absolute; top: -2px; right: 26px; width: 22px; height: 46px; transform-origin: 50% 0; pointer-events: none; }
+  .m-card .bauble::before { content: ""; position: absolute; left: 10px; top: 0; width: 1px; height: 24px; background: var(--muted); }
+  .m-card .bauble::after { content: ""; position: absolute; left: 0; top: 22px; width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #F5C9CF 0 3px, var(--holly) 4px 100%); box-shadow: inset -3px -3px 0 rgba(0,0,0,.12); }
+  .m-card:nth-child(3n+2) .bauble::after { background: radial-gradient(circle at 35% 30%, #FFF4C9 0 3px, #D2A94A 4px 100%); }
+  .m-card:nth-child(3n) .bauble::after { background: radial-gradient(circle at 35% 30%, #D7EADF 0 3px, var(--pine) 4px 100%); }
+  .m-date .d { color: var(--holly); }
+  .m-card.past .m-date .d { color: inherit; }
+
+  .fetes .product { position: relative; }
+  .fetes .product::before { content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 12px; translate: -50% 0; background: color-mix(in srgb, var(--holly) 16%, transparent); pointer-events: none; }
+  .fetes .product::after { content: "Idée cadeau"; position: absolute; top: 14px; right: -8px; background: var(--holly); color: #FFF; font-family: var(--sc); font-size: 13px; padding: 2px 14px 2px 18px; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 8px 50%); transform-origin: 100% 50%; }
+  .fetes .stage, .fetes h4, .fetes .ing, .fetes .row { position: relative; }
+
+  .flurry { position: fixed; inset: 0; z-index: 15; pointer-events: none; overflow: hidden; display: none; }
+  .flurry span { position: absolute; top: -20px; color: #A9B3D6; opacity: .55; }
+  .smoke { fill: #E9E6F2; opacity: 0; }
+  .win { fill: #F6D27A; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    body.hiver .flurry { display: block; }
+    .flurry span { animation: flurry var(--dur) linear var(--delay) infinite; }
+    @keyframes flurry { from { transform: translate(0, 0) rotate(0); } 50% { transform: translate(24px, 55vh) rotate(180deg); } to { transform: translate(-8px, 110vh) rotate(360deg); } }
+    .star { animation: twinkle var(--t) ease-in-out var(--delay) infinite alternate; }
+    @keyframes twinkle { from { opacity: .15; transform: scale(.6); } to { opacity: 1; transform: scale(1.1); } }
+    .shoot { animation: shoot 9s ease-out 3s infinite; }
+    @keyframes shoot { 0%, 88% { opacity: 0; transform: translate(0, 0) rotate(18deg); } 90% { opacity: 1; } 100% { opacity: 0; transform: translate(260px, 84px) rotate(18deg); } }
+    .moon { animation: glow 5s ease-in-out infinite alternate; }
+    .play .moon { animation: rise 1100ms var(--ease-out) 200ms both, glow 5s ease-in-out 1.3s infinite alternate; }
+    @keyframes glow { from { box-shadow: 0 0 0 14px rgba(246,237,210,0.08), 0 0 0 30px rgba(246,237,210,0.05); } to { box-shadow: 0 0 0 20px rgba(246,237,210,0.12), 0 0 0 44px rgba(246,237,210,0.06), 0 0 60px 10px rgba(246,237,210,0.18); } }
+    .bulb { animation: blink 1.6s ease-in-out var(--delay) infinite alternate; }
+    @keyframes blink { from { opacity: .35; } to { opacity: 1; } }
+    .garland svg { transform-origin: 50% 0; animation: breeze 6s ease-in-out infinite alternate; }
+    @keyframes breeze { from { transform: rotate(-0.4deg); } to { transform: rotate(0.4deg); } }
+    .countdown .spark { animation: spin 4s linear infinite; }
+    @keyframes spin { to { rotate: 360deg; } }
+    .win { animation: flicker 2.4s steps(1) infinite; }
+    @keyframes flicker { 0%, 100% { fill: #F6D27A; } 30% { fill: #F2C25E; } 55% { fill: #FBE29A; } 70% { fill: #F0B84E; } }
+    .smoke { transform-box: fill-box; transform-origin: center; animation: smoke 4.5s ease-out var(--delay) infinite; }
+    @keyframes smoke { 0% { opacity: 0; transform: translate(0, 0) scale(.6); } 20% { opacity: .8; } 100% { opacity: 0; transform: translate(-14px, -40px) scale(1.8); } }
+    .halo { animation: halo 2s ease-out infinite; }
+    @keyframes halo { from { transform: scale(1); opacity: .8; } to { transform: scale(2.4); opacity: 0; } }
+    .m-card .bauble { animation: swing 3.2s ease-in-out infinite alternate; }
+    .m-card:nth-child(2n) .bauble { animation-duration: 4s; animation-direction: alternate-reverse; }
+    @keyframes swing { from { rotate: -9deg; } to { rotate: 9deg; } }
+    .m-card { transition: border-color 200ms ease, transform 300ms var(--ease-out); }
+    @media (hover: hover) and (pointer: fine) { .m-card:not(.past):hover { transform: translateY(-3px); } .m-card:hover .bauble { animation-duration: .9s; } }
+    .fetes .product::after { animation: tag 3s ease-in-out infinite alternate; }
+    @keyframes tag { from { rotate: -3deg; } to { rotate: 3deg; } }
+    .holly { animation: holly 4s ease-in-out infinite alternate; }
+    @keyframes holly { from { rotate: -6deg; } to { rotate: 6deg; } }
+  }
+
+  /* Touches pastel sur la tournée et les dates */
+  .m-card { --tint: #FBEFF3; --chip: #F7DFE4; background: linear-gradient(135deg, var(--tint) 0%, var(--paper) 70%); }
+  .m-card:nth-child(5n+2) { --tint: #F3EEFA; --chip: #E6DCF2; }
+  .m-card:nth-child(5n+3) { --tint: #FBF5E3; --chip: #F5E8C2; }
+  .m-card:nth-child(5n+4) { --tint: #EEF6F0; --chip: #D9EBDD; }
+  .m-card:nth-child(5n) { --tint: #EDF3FA; --chip: #D8E6F4; }
+  .m-date { background: var(--chip); border-right: 0; border-radius: 18px 18px 8px 8px; padding: 10px 6px; align-self: start; }
+  .m-card.past { --tint: var(--paper); --chip: #ECEAF1; }
+  .map-wrap { background: linear-gradient(160deg, #F7F1FB 0%, var(--paper) 45%, #EEF4FA 100%); }
+</style>
+</head>
+<body>
+
+<div class="demo-flag">Maquette de démonstration.</div>
+
+<header>
+  <div class="wrap bar">
+    <a class="logo" href="#top"><span class="full">Herbier du Saut de la Brame</span><span class="short">Herbier</span></a>
+    <nav aria-label="Navigation principale">
+      <a class="opt" href="#boutique" data-view="shop">Produits</a>
+      <a href="#herbier" data-view="shop">L'herbier</a>
+      <a class="opt" href="#points-de-vente" data-view="shop">Points de vente</a>
+      <a href="#marches" data-view="hiver">Marchés de Noël</a>
+      <a class="opt" href="#contact" data-view="shop">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<div class="view" id="view-shop">
+  <section class="wrap">
+    <div class="hero">
+      <div class="hero-inner">
+        <div class="hero-text">
+          <p class="kicker">Sirops, sucres, sels, gomasio et tisanes</p>
+          <h1>Herbier du Saut de la Brame</h1>
+          <div class="divider" aria-hidden="true"><span></span></div>
+          <p class="tagline">Des odeurs, des couleurs, des saveurs</p>
+          <a class="btn" href="#boutique">Voir les produits</a>
+          <a class="hero-link" href="#marches">Nous retrouver sur les marchés de Noël</a>
+        </div>
+        <div id="scene" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap shop" id="boutique">
+    <div class="shop-head">
+      <h2>Nos produits</h2>
+      <div class="tabs" role="tablist" aria-label="Filtrer par gamme" id="tabs">
+        <span class="indicator" id="indicator"></span>
+      </div>
+    </div>
+    <div class="catalog" id="catalog"></div>
+  </section>
+
+  <section class="promise" id="engagement">
+    <div id="petals" aria-hidden="true"></div>
+    <p class="big">100 % local, 100 % fait main</p>
+    <p class="small">Cultivés en agriculture biologique en Nord Haute-Vienne</p>
+  </section>
+
+  <section class="story" id="herbier">
+    <div class="wrap">
+      <article class="story-inner">
+        <div class="story-head">
+          <p class="kicker">Notre histoire</p>
+          <h2 class="sec-title">L’histoire de l’Herbier du Saut de la Brame</h2>
+          <div class="divider center" aria-hidden="true"><span></span></div>
+        </div>
+
+        <p class="lede">Il y a des endroits qui nous accompagnent toute une vie.</p>
+        <p>Pour moi, il y a le Saut de la Brame, dans le Nord de la Haute-Vienne. Un lieu préservé, calme et enchanteur, où j’ai grandi entourée de souvenirs partagés avec ma famille.</p>
+        <div class="plate"><figure><img src="img/jardin.jpg" alt="Jardin en pente bordé d’un muret de pierres, arbres fruitiers et massifs fleuris" loading="lazy" width="1400" height="1050"><figcaption>Au jardin</figcaption></figure></div>
+        <p>Sœur, fille et petite-fille d’agriculteurs, j’ai toujours eu un lien profond avec la terre et avec ce qui y pousse. J’aime le jardin, le plaisir de gratter la terre, de faire pousser un potager, de planter des arbres fruitiers… Tout simplement, mettre les mains dans la terre et regarder la vie prendre racine.</p>
+        <p>Et puis il y a mon autre univers : les livres. De formation, je travaille en bibliothèque. J’aime lire, apprendre, chercher, comprendre, découvrir. Mais au fil des années, comme beaucoup d’autres métiers, le monde des bibliothèques s’est profondément digitalisé. Et j’ai parfois ressenti le besoin de retrouver quelque chose de plus concret, de plus proche de la nature, de mes mains et de mes racines.</p>
+        <p>C’est ainsi qu’en 2021 est née l’envie de créer quelque chose autour des plantes.</p>
+        <p>Au départ, une curiosité… puis une découverte après l’autre, j’ai commencé à m’intéresser aux plantes aromatiques et médicinales. J’ai découvert leurs histoires, leurs usages, leurs parfums et leurs saveurs. Des plantes parfois oubliées, qui pourtant recèlent de véritables trésors.</p>
+        <p>Je me suis amusée à les cuisiner, à les glisser dans mes pâtisseries, à expérimenter, à associer les goûts et les couleurs. Et surtout, j’ai découvert un monde insoupçonné juste là, sous nos pieds, autour de nous.</p>
+        <div class="plate pair"><figure><img src="img/sureau.jpg" alt="Panier en osier rempli de fleurs blanches de sureau, devant un arbuste en fleurs" loading="lazy" width="1400" height="1050"><figcaption>Cueillette de fleurs de sureau</figcaption></figure><figure><img src="img/tisanes.jpg" alt="Sachets kraft de tisanes et un petit pot de verre sur un plateau" loading="lazy" width="1400" height="1050"><figcaption>Les tisanes en sachet</figcaption></figure></div>
+        <p>Alors j’ai eu envie de partager ces découvertes.</p>
+        <p>De montrer que les plantes peuvent surprendre, éveiller la curiosité, apporter de nouvelles saveurs et trouver une place toute simple dans notre cuisine quotidienne.</p>
+
+        <h3>Au rythme de la nature</h3>
+        <p>À l’Herbier, je travaille au rythme des saisons, avec tout ce qu’elles ont à nous offrir… même si, il faut bien l’avouer, il devient parfois de plus en plus difficile de s’y retrouver !</p>
+        <p>Je cultive mes plantes sans intrants chimiques, sur un terrain certifié en agriculture biologique, en accordant une place essentielle à la biodiversité. Je laisse autant que possible la nature trouver son équilibre, j’observe, je m’adapte, je prends le temps.</p>
+        <div class="plate pair"><figure><img src="img/lavande.jpg" alt="Massif de lavande en fleurs avec un panier et une ardoise « Lavande vraie »" loading="lazy" width="1400" height="1050"><figcaption>Lavande vraie</figcaption></figure><figure><img src="img/machaon.jpg" alt="Papillon machaon posé, ailes ouvertes" loading="lazy" width="1400" height="1050"><figcaption>Un machaon de passage</figcaption></figure></div>
+        <p>Ici, tout est fait à la main : semer, planter, désherber, récolter, trier, faire sécher, transformer, conditionner… Chaque étape demande du temps et de l’attention.</p>
+        <p>Cette façon de faire est parfois exigeante, mais elle correspond profondément à ce que je veux transmettre à travers l’Herbier : des produits simples, naturels, faits avec soin et respect du vivant.</p>
+
+        <h3>Une histoire de famille</h3>
+        <p>Et puis l’Herbier du Saut de la Brame, c’est aussi une histoire qui ne se construit pas seule.</p>
+        <p>Il y a Christophe, mon mari, qui me soutient dans cette aventure depuis le début et qui est toujours là pour donner un coup de main… surtout lorsqu’il s’agit du gros œuvre ! Sans lui, bien des choses seraient certainement beaucoup plus compliquées.</p>
+        <div class="plate"><figure><img src="img/pergola.jpg" alt="Maison de pierre avec une pergola couverte de glycine blanche, salon de jardin" loading="lazy" width="1400" height="1050"><figcaption>Sous la pergola</figcaption></figure></div>
+        <p>Et puis il y a mes fils, qui participent eux aussi à leur manière, donnent un coup de main, posent un regard différent, conseillent, questionnent… et apportent leurs idées.</p>
+        <p>L’Herbier est devenu au fil du temps une véritable aventure familiale. Une aventure faite de travail, de discussions, de coups de main, de bonnes idées, parfois de doutes aussi, mais surtout de beaucoup de plaisir et de fierté.</p>
+        <p>Et je crois que ce qui me touche le plus aujourd’hui, c’est de regarder tout ce que nous avons réussi à construire tous les quatre.</p>
+        <p>C’est de cette histoire, de ce lieu et de cette envie de partager qu’est né l’Herbier du Saut de la Brame.</p>
+        <p>Une gamme de produits culinaires autour des plantes aromatiques et médicinales, cultivées et récoltées avec soin au cœur du Nord de la Haute-Vienne.</p>
+        <div class="plate cine"><figure><img src="img/stand.jpg" alt="Stand de vente : présentoirs en bois garnis de tisanes, pots et sirops, panier en osier" loading="lazy" width="1400" height="1050"><figcaption>Sur le stand</figcaption></figure></div>
+        <p>Une façon de faire découvrir ou redécouvrir ces plantes, de les regarder autrement… et peut-être de donner envie, à notre tour, de regarder ce qui pousse autour de nous et de se laisser surprendre par les merveilles de la nature.</p>
+
+        <p class="roots">L’Herbier du Saut de la Brame, c’est une histoire de racines : celles de la terre, celles des plantes… et les nôtres.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="wrap stockists" id="points-de-vente">
+    <div class="sec-head">
+      <h2 class="sec-title">Où trouver nos produits</h2>
+      <p class="lead">Chez nos partenaires, en circuit court, autour du Nord Haute-Vienne.</p>
+    </div>
+    <div class="shops" id="shops"></div>
+  </section>
+
+  <section class="wrap contact" id="contact">
+    <div class="contact-card">
+      <div>
+        <p class="kicker">Contact</p>
+        <h2 class="sec-title">Commander, tout simplement</h2>
+        <p class="call">Un simple coup de fil suffit pour passer commande. On se retrouve ensuite à l’herbier, ou ailleurs selon ce qui vous arrange.</p>
+        <p>Vous pouvez aussi nous retrouver chez nos points de vente et sur les marchés de Noël.</p>
+      </div>
+      <dl class="details">
+        <div>
+          <dt>Téléphone</dt>
+          <dd class="phone"><span id="phone">06 66 56 30 36</span> <button class="add" id="copy-phone" type="button">Copier</button></dd>
+        </div>
+        <div>
+          <dt>Adresse</dt>
+          <dd>5 Villars, Darnac<br>87320 Val-d’Oire-et-Gartempe</dd>
+        </div>
+        <div>
+          <dt>E-mail</dt>
+          <dd class="soon">Adresse bientôt disponible</dd>
+        </div>
+      </dl>
+    </div>
+  </section>
+</div>
+
+<div class="view" id="view-hiver" hidden>
+  <section class="wrap">
+    <div class="w-hero">
+      <div class="w-inner">
+        <div class="stars" id="stars" aria-hidden="true"><span class="shoot"></span></div>
+        <canvas id="snow"></canvas>
+        <div class="garland" id="garland" aria-hidden="true"></div>
+        <div class="moon" aria-hidden="true"></div>
+        <div class="w-text">
+          <p class="kicker">Saison des fêtes 2026</p>
+          <h1>Retrouvez l'herbier sur les marchés de Noël</h1>
+          <p class="tagline">Tisanes, sirops et sucres fleuris à goûter et à offrir, directement sur le stand.</p>
+          <p class="countdown" id="countdown"></p>
+        </div>
+        <div class="forest" id="forest" aria-hidden="true"></div>
+        <span class="hint" aria-hidden="true">Cliquez dans le ciel</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap w-grid">
+    <div class="map-wrap snowcap">
+      <h2>La tournée</h2>
+      <p class="sub">Nord Haute-Vienne et alentours</p>
+      <div id="map"></div>
+    </div>
+    <div class="w-list">
+      <h2>Les dates</h2>
+      <div id="markets"></div>
+      <p class="more">D’autres dates peuvent s’ajouter. Pour savoir où nous trouver, un coup de fil suffit : <b>06 66 56 30 36</b>.</p>
+    </div>
+  </section>
+
+  <section class="wrap fetes">
+    <h2>Pour les fêtes</h2>
+    <p class="lead">Les tisanes de fin d'année arrivent pour la saison. À retrouver sur les stands, dans la limite des stocks.</p>
+    <div class="grid" id="fetes"></div>
+  </section>
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Herbier du Saut de la Brame, Nord Haute-Vienne · SIRET 930 265 822 00013</span>
+    <span><a href="#">Mentions légales</a> &nbsp; <a href="#">CGV</a> &nbsp; <a href="#">Livraison et retours</a></span>
+  </div>
+</footer>
+
+<div class="flurry" id="flurry" aria-hidden="true"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  const INK = "#4F3B55";
+  const R = "rupture", S = "bientot";
+
+  const cats = [
+    { key: "tisanes", name: "Tisanes", format: "Sachet de 25 g", price: 6, kind: "sachet", panel: "#F1E7F1", ribbon: "#DCCBEB", items: [
+      ["Tisane Du Centenaire", "reine des prés, ortie, frêne, cassis"],
+      ["Tisane Après Bombance", "menthe, mélisse, romarin, monarde, rose"],
+      ["Tisane Au grand Air", "sureau, rose, serpolet, lierre terrestre"],
+      ["Tisane Morphée", "lavande, menthe, tilleul, aspérule odorante, pavot de Californie"],
+      ["Tisane Un chat dans la gorge", "origan, plantain, ronce, hysope, mauve"],
+      ["Tisane De bon matin", "feuille de figuier, romarin, sauge, basilic sacré, achillée millefeuille", S],
+      ["Tisane Girl Power", "armoise vulgaire, achillée millefeuille, sauge, feuille de framboisier, calendula", S],
+      ["Tisane Joyeuses fêtes", "feuille de figuier, verveine citronnée, aubépine, cenelle, bleuet, frêne", S],
+      ["Tisane Meilleurs vœux", "tilleul, sureau, achillée millefeuille, basilic tulsi, agastache, cassis et groseilles sèches", S]
+    ]},
+    { key: "sirops", name: "Sirops", format: "Bouteille de 20 cl", price: 5, kind: "bouteille", panel: "#F7DFE4", ribbon: "#EDC0CC", items: [
+      ["Sirop de thym", "", "", "#CDB77F"],
+      ["Sirop de romarin", "", "", "#AEBF8F"],
+      ["Sirop d'aurone cola", "", "", "#8A5A45"],
+      ["Sirop de fenouil", "", "", "#DCD48F"],
+      ["Sirop de pétales de rose", "", "", "#E8A0B3"],
+      ["Sirop géranium rosa et verveine citronnée", "", "", "#DB97AC"],
+      ["Sirop de fleurs de sureau", "", R, "#EFE3A8"],
+      ["Sirop de fleurs de glycine", "", R, "#BCA8DC"],
+      ["Sirop de chatons de châtaignier", "", R, "#D8B66E"],
+      ["Sirop de cassis", "", R, "#7A3558"]
+    ]},
+    { key: "sucres", name: "Sucres", format: "Pot de 60 g", price: 5, kind: "pot", panel: "#FAF0D8", ribbon: "#F2DE9E", items: [
+      ["Sucre aux pétales de rose", "", "", "#F1BCCB"],
+      ["Sucre à la fleur de sureau", "", "", "#F3EBC4"],
+      ["Sucre à la reine des prés", "", "", "#F5EEDC"],
+      ["Sucre aux feuilles de figuier", "", "", "#C9D9B2"],
+      ["Sucre à l'ortie", "", "", "#B7CFA2"],
+      ["Sucre au cassis", "", S, "#B7839E"]
+    ]},
+    { key: "sel", name: "Sel", format: "Pot de 60 g", price: 5, kind: "pot", panel: "#E8EDE3", ribbon: "#C6E1CC", items: [
+      ["Sel à l'ail des ours", "", R, "#C3D9AE"],
+      ["Sel à l'ortie", "", "", "#C8D7B8"],
+      ["Sel aux légumes", "persil, courgette, blette, oignon", S, "#DCE3C8"],
+      ["Sel à la sauge", "", S, "#CBD5C6"],
+      ["Sel pour poisson", "estragon, fenouil, laurier, ciboulette", S, "#D6E1D2"]
+    ]},
+    { key: "gomasio", name: "Gomasio", format: "Pot de 60 g", price: 6, kind: "pot", panel: "#EAEDF2", ribbon: "#C5DAEF", items: [
+      ["Gomasio ail des ours", "", R, "#D8D2B4"],
+      ["Gomasio ortie", "", S, "#CFCDB0"],
+      ["Gomasio des bois", "au lamier pourpre", S, "#D9C7BF"],
+      ["Gomasio piment", "", S, "#E2B9A6"]
+    ]}
+  ];
+
+  const products = [];
+  cats.forEach(c => c.items.forEach(([name, ing, status, tint]) =>
+    products.push({ id: products.length, cat: c, name, ing, status, tint: tint || c.ribbon, price: c.price })));
+
+  // Illustrations au trait, dans l'esprit de l'affiche
+  const sprig = (x, y, col) => `<path d="M${x} ${y+14}v-14" stroke="${INK}" stroke-width="1.2"/>
+    <ellipse cx="${x-4}" cy="${y+8}" rx="3.5" ry="1.8" fill="#BFD8C5" stroke="${INK}" stroke-width=".8" transform="rotate(-30 ${x-4} ${y+8})"/>
+    ${[0,72,144,216,288].map(a => `<ellipse cx="${x}" cy="${y-4}" rx="2.4" ry="4" fill="${col}" stroke="${INK}" stroke-width=".8" transform="rotate(${a} ${x} ${y})"/>`).join("")}
+    <circle cx="${x}" cy="${y}" r="2" fill="#F6E3A1" stroke="${INK}" stroke-width=".7"/>`;
+
+  function shape(p) {
+    const s = `stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"`;
+    if (p.cat.kind === "sachet") return `
+      <path d="M26 30h68l6 128H20z" fill="#EAD7BB" ${s}/>
+      <path d="M26 30l6-8 6 8 6-8 6 8 6-8 6 8 6-8 6 8 6-8 6 8 6-8" fill="none" ${s}/>
+      <path d="M24 44h72" stroke="${INK}" stroke-width="1" opacity=".4"/>
+      <rect x="34" y="72" width="52" height="56" rx="4" fill="${p.cat.ribbon}" ${s}/>
+      ${sprig(60, 98, "#F2B6C6")}`;
+    if (p.cat.kind === "bouteille") return `
+      <rect x="50" y="6" width="20" height="16" rx="3" fill="#C9A27A" ${s}/>
+      <path d="M52 22h16v24q24 10 24 36v68q0 8-8 8H36q-8 0-8-8V82q0-26 24-36z" fill="#FFFFFF" ${s}/>
+      <path d="M33 84q0-18 20-28h14q20 10 20 28v64q0 5-5 5H38q-5 0-5-5z" fill="${p.tint}"/>
+      <rect x="38" y="96" width="44" height="40" rx="4" fill="#FDF8F7" ${s}/>
+      ${sprig(60, 116, p.cat.ribbon)}`;
+    return `
+      <path d="M22 38h76v16H22z" fill="${p.cat.ribbon}" ${s}/>
+      <path d="M22 46h76M40 38v16M60 38v16M80 38v16" stroke="${INK}" stroke-width=".8" opacity=".35"/>
+      <rect x="26" y="54" width="68" height="104" rx="14" fill="#FFFFFF" ${s}/>
+      <rect x="31" y="66" width="58" height="86" rx="10" fill="${p.tint}"/>
+      <rect x="36" y="92" width="48" height="38" rx="4" fill="#FDF8F7" ${s}/>
+      ${sprig(60, 110, "#F2B6C6")}`;
+  }
+  const art = p => `<svg viewBox="0 0 120 160" role="img" aria-label="${p.name}">${shape(p)}</svg>`;
+
+  // Scène du hero
+  function flower(cx, cy, r, fill, delay) {
+    const petals = [0,45,90,135,180,225,270,315].map(a =>
+      `<ellipse cx="${cx}" cy="${cy - r*0.55}" rx="${r*0.3}" ry="${r*0.55}" fill="${fill}" stroke="${INK}" stroke-width="1.1" transform="rotate(${a} ${cx} ${cy})"/>`).join("");
+    return `<g class="bloom" style="animation-delay:${delay}ms">${petals}<circle cx="${cx}" cy="${cy}" r="${r*0.3}" fill="#F6E3A1" stroke="${INK}" stroke-width="1.1"/></g>`;
+  }
+  function stem(d, delay) { return `<path class="stem" pathLength="1" d="${d}" fill="none" stroke="${INK}" stroke-width="1.4" stroke-linecap="round" style="animation-delay:${delay}ms"/>`; }
+  function leaf(x, y, rot, delay) { return `<g transform="rotate(${rot} ${x} ${y})"><ellipse class="leaf" cx="${x}" cy="${y}" rx="11" ry="4.5" fill="#BFD8C5" stroke="${INK}" stroke-width="1" style="animation-delay:${delay}ms"/></g>`; }
+
+  const pick = k => products.find(p => p.cat.key === k && !p.status);
+  const sachet = pick("tisanes"), bottle = products.find(p => p.name === "Sirop de pétales de rose"), jar = pick("sucres");
+  const place = (p, x, w, h, delay) => `<g class="item" style="animation-delay:${delay}ms"><svg x="${x}" y="${366 - h}" width="${w}" height="${h}" viewBox="0 0 120 160">${shape(p)}</svg></g>`;
+
+  document.getElementById("scene").innerHTML = `
+    <svg viewBox="0 0 520 400">
+      ${stem("M140 366 C130 280 175 220 168 118", 520)}${leaf(156, 250, -35, 800)}${leaf(170, 190, 30, 880)}
+      ${flower(168, 104, 34, "#F2B6C6", 1080)}
+      ${stem("M330 366 C345 270 318 180 350 84", 600)}${leaf(338, 230, 35, 900)}${leaf(330, 160, -30, 960)}
+      ${flower(350, 72, 30, "#CDB8E6", 1160)}
+      ${stem("M58 366 C45 300 70 250 44 190", 680)}${leaf(52, 290, -40, 960)}
+      ${flower(44, 178, 24, "#BCD3EC", 1240)}
+      ${stem("M470 366 C485 310 455 260 478 206", 740)}${leaf(474, 300, 40, 1000)}
+      ${flower(478, 194, 24, "#F2B6C6", 1300)}
+      ${place(sachet, 62, 124, 166, 120)}
+      ${place(bottle, 196, 138, 184, 200)}
+      ${place(jar, 344, 124, 166, 280)}
+      <rect x="10" y="366" width="500" height="7" rx="3" fill="${INK}"/>
+    </svg>`;
+
+  // Onglets
+  const tabsEl = document.getElementById("tabs");
+  [{ key: "tout", name: "Tout" }, ...cats].forEach((c, i) => {
+    const b = document.createElement("button");
+    b.className = "tab"; b.role = "tab"; b.dataset.cat = c.key; b.textContent = c.name;
+    b.setAttribute("aria-selected", i === 0);
+    tabsEl.appendChild(b);
+  });
+  const tabs = [...tabsEl.querySelectorAll(".tab")];
+  const indicator = document.getElementById("indicator");
+  const moveIndicator = t => { indicator.style.width = t.offsetWidth + "px"; indicator.style.transform = `translateX(${t.offsetLeft}px)`; };
+
+  // Catalogue
+  const catalog = document.getElementById("catalog");
+  const label = { [R]: "En rupture de stock", [S]: "Bientôt disponible" };
+  const cardHTML = p => `
+          <article class="product${p.status ? " off" : ""}">
+            <div class="stage">${art(p)}</div>
+            <h4>${p.name}</h4>
+            ${p.ing ? `<p class="ing">${p.ing}</p>` : ""}
+            <div class="row">
+              <span class="price">${p.price} €</span>
+              ${p.status ? `<span class="status">${label[p.status]}</span>` : ""}
+            </div>
+          </article>`;
+  function renderCatalog(key) {
+    catalog.innerHTML = cats.filter(c => key === "tout" || c.key === key).map(c => `
+      <section class="cat" style="--panel:${c.panel};--ribbon:${c.ribbon}">
+        <div class="cat-head"><h3>${c.name}</h3><span class="ribbon">${c.format} – ${c.price} €</span></div>
+        <div class="grid">${products.filter(p => p.cat === c).map(cardHTML).join("")}</div>
+      </section>`).join("");
+  }
+  renderCatalog("tout");
+
+  let current = "tout";
+  tabs.forEach(t => t.addEventListener("click", () => {
+    if (t.dataset.cat === current) return;
+    current = t.dataset.cat;
+    tabs.forEach(x => x.setAttribute("aria-selected", x === t));
+    moveIndicator(t);
+    t.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+    catalog.classList.add("is-changing");
+    setTimeout(() => { renderCatalog(current); catalog.classList.remove("is-changing"); }, 180);
+  }));
+  const placeIndicator = () => {
+    indicator.style.transition = "none";
+    moveIndicator(tabs.find(t => t.getAttribute("aria-selected") === "true"));
+    indicator.offsetWidth; indicator.style.transition = "";
+  };
+  addEventListener("resize", placeIndicator);
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(placeIndicator);
+  placeIndicator();
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const toastEl = document.getElementById("toast"); let tt;
+  function toast(msg) { toastEl.textContent = msg; toastEl.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => toastEl.classList.remove("show"), 2200); }
+
+  // Pétales du bandeau
+  const petalCols = ["#F2B6C6", "#DCCBEB", "#F2DE9E", "#C6E1CC", "#C5DAEF"];
+  document.getElementById("petals").innerHTML = Array.from({ length: 14 }, (_, i) =>
+    `<span class="petal" style="left:${(i * 7.3 + 3) % 100}%;background:${petalCols[i % 5]};--dur:${7 + (i % 5) * 1.6}s;--delay:${-i * 1.3}s"></span>`).join("");
+
+  // ---------- Points de vente ----------
+  const shops = [
+    ["Drive « Ah la bonne adresse »", "Association de producteurs et d'artisans en circuit court", "Le Dorat"],
+    ["Indigo", "Bistrot boutique", "Le Dorat"],
+    ["Magn'accueil", "Office de tourisme", "Magnac-Laval"],
+    ["Éco-Entrepôt", "", "Bussière-Poitevine, Val-d'Oire-et-Gartempe"],
+    ["Chez Mathilde", "Bar épicerie", "Adriers"],
+    ["Panier Sympa", "Épicerie", "Lathus-Saint-Rémy"],
+    ["Alimentation marchoise", "Épicerie", "Mézières-sur-Issoire, Val-d'Issoire"],
+    ["Au Tambour cassé", "", "Darnac, Val-d'Oire-et-Gartempe"],
+    ["Vitrine des Monts du Limousin", "Boutique éphémère", "Ambazac", "En été et à Noël"],
+    ["Art et Limousin", "Expo-vente", "Mortemart", "En été"]
+  ];
+  const tints = cats.map(c => [c.panel, c.ribbon]);
+  document.getElementById("shops").innerHTML = shops.map(([name, what, where, season], i) => `
+    <article class="shop-card" style="--panel:${tints[i % tints.length][0]};--ribbon:${tints[i % tints.length][1]}">
+      <svg class="sprig" viewBox="0 0 40 40" aria-hidden="true">${sprig(20, 22, ["#F2B6C6", "#CDB8E6", "#BCD3EC", "#F6E3A1"][i % 4])}</svg>
+      <h3>${name}</h3>
+      ${what ? `<p class="what">${what}</p>` : ""}
+      <p class="where"><span class="town">${where}</span>${season ? `<span class="tag season">${season}</span>` : ""}</p>
+    </article>`).join("");
+
+  // Copier le numéro
+  const phoneEl = document.getElementById("phone");
+  document.getElementById("copy-phone").addEventListener("click", () => {
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents(phoneEl); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("Numéro sélectionné, copiez-le"); };
+    try { navigator.clipboard.writeText("0666563036").then(() => toast("Numéro copié"), fallback); } catch { fallback(); }
+  });
+
+  // ---------- Marchés de Noël 2026 ----------
+  // Positions schématiques sur la carte (nord en haut)
+  const markets = [
+    { town: "Bussière-Poitevine", commune: "Val-d'Oire-et-Gartempe", start: "2026-11-20", x: 60, y: 170 },
+    { town: "Oradour-Saint-Genest", start: "2026-11-29", x: 230, y: 160 },
+    { town: "Darnac", commune: "Val-d'Oire-et-Gartempe", start: "2026-12-05", x: 150, y: 240 },
+    { town: "Lathus-Saint-Rémy", start: "2026-12-06", x: 130, y: 70 },
+    { town: "Bellac", start: "2026-12-11", end: "2026-12-12", x: 230, y: 350 },
+    { town: "Le Dorat", start: "2026-12-20", x: 290, y: 250 },
+    { town: "La Souterraine", start: "2026-12-23", x: 490, y: 210 }
+  ];
+  const day = iso => new Date(iso + "T12:00:00");
+  const today = new Date(); today.setHours(12, 0, 0, 0);
+  const lastDay = m => day(m.end || m.start);
+  const nextIdx = markets.findIndex(m => lastDay(m) >= today);
+  const fmt = (iso, o) => day(iso).toLocaleDateString("fr-FR", o);
+
+  // Compte à rebours
+  const cd = document.getElementById("countdown");
+  if (nextIdx === -1) cd.textContent = "La tournée de cette année est terminée, rendez-vous l'an prochain.";
+  else {
+    const m = markets[nextIdx], n = Math.round((day(m.start) - today) / 864e5);
+    cd.innerHTML = `<span class="spark" aria-hidden="true">✦</span>` + (n <= 0 ? `<span>Aujourd'hui :</span> <b>${m.town}</b>` : `<span>Prochain marché à</span> <b>${m.town}</b> <span>dans ${n} jour${n > 1 ? "s" : ""}</span>`);
+  }
+
+  // Forêt enneigée
+  const tree = (x, h, i, shade) => {
+    const w = h * 0.62, t = y => `M${x} ${y}l${-w/2} ${h*0.36}h${w}z`;
+    return `<g class="tree" style="--i:${i}">
+      <rect x="${x-4}" y="${150-h*0.12}" width="8" height="${h*0.12}" fill="#2D2944"/>
+      <path d="${t(150-h)}${t(150-h*0.72)}${t(150-h*0.46)}" fill="${shade}" stroke="#2D2944" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M${x} ${150-h}l${-w*0.18} ${h*0.12}q${w*0.18} 6 ${w*0.36} 0z" fill="#FFFFFF"/>
+    </g>`;
+  };
+  const trees = [[40,70,"#7FA592"],[110,110,"#6C9480"],[190,80,"#8BB09C"],[270,120,"#6C9480"],[360,90,"#7FA592"],[440,130,"#5F8773"],[530,85,"#8BB09C"],[610,115,"#6C9480"],[690,75,"#7FA592"],[760,105,"#5F8773"]];
+  document.getElementById("forest").innerHTML = `<svg viewBox="0 0 800 160" style="width:100%;height:auto">
+    ${trees.map(([x,h,c],i) => tree(x,h,i,c)).join("")}
+    <g class="tree" style="--i:5">
+      ${[0, 1.5, 3].map(d => `<circle class="smoke" cx="529" cy="94" r="5" style="--delay:${d}s"/>`).join("")}
+      <rect x="525" y="98" width="8" height="16" fill="#5C3B33" stroke="#2D2944" stroke-width="1"/>
+      <rect x="482" y="118" width="54" height="32" fill="#8A5A45" stroke="#2D2944" stroke-width="1.2"/>
+      <path d="M474 121L509 95L544 121z" fill="#5C3B33" stroke="#2D2944" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M472 121L509 93L546 121l-5 3L509 100L477 124z" fill="#FFFFFF"/>
+      <rect class="win" x="490" y="127" width="13" height="11" stroke="#2D2944" stroke-width="1"/>
+      <path d="M496.5 127v11M490 132.5h13" stroke="#2D2944" stroke-width=".8"/>
+      <rect x="512" y="131" width="11" height="19" fill="#4A2F29" stroke="#2D2944" stroke-width="1"/>
+    </g>
+    <path d="M0 146q200-16 400-4t400-6V160H0z" fill="#FAFBFE"/>
+  </svg>`;
+
+  // Carte
+  function smooth(pts) {
+    let d = `M${pts[0].x} ${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+      d += ` C${p1.x + (p2.x - p0.x) / 6} ${p1.y + (p2.y - p0.y) / 6} ${p2.x - (p3.x - p1.x) / 6} ${p2.y - (p3.y - p1.y) / 6} ${p2.x} ${p2.y}`;
+    }
+    return d;
+  }
+  const flake = (x, y) => [0, 60, 120].map(a => `<path d="M${x} ${y-6}v12" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" transform="rotate(${a} ${x} ${y})"/>`).join("");
+  document.getElementById("map").innerHTML = `<svg viewBox="0 0 560 420" role="img" aria-label="Carte schématique des marchés"><defs><linearGradient id="land" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3EAF6"/><stop offset=".5" stop-color="#EEF1F8"/><stop offset="1" stop-color="#E8F1EC"/></linearGradient></defs>
+    <path d="M70 60Q150 10 300 30T510 110Q560 200 500 300T330 400Q170 410 80 340T30 180Q30 100 70 60z" fill="url(#land)" stroke="${INK}" stroke-opacity=".3" stroke-dasharray="4 5"/>
+    <path class="route" pathLength="1" d="${smooth(markets)}" fill="none" stroke="${INK}" stroke-width="1.6" stroke-dasharray="1" stroke-linecap="round" opacity=".7"/>
+    ${markets.map((m, i) => {
+      const right = m.x > 420;
+      return `<g class="pin${i < nextIdx || nextIdx === -1 ? " past" : ""}" data-i="${i}" tabindex="0" role="button" aria-label="${m.town}" style="--d:${700 + i * 250}ms">
+        ${i === nextIdx ? `<circle class="halo" cx="${m.x}" cy="${m.y}" r="12"/>` : ""}
+        <circle class="ring" cx="${m.x}" cy="${m.y}" r="12" fill="${i === nextIdx ? "#F2B6C6" : "#B9A6D9"}" stroke="${INK}" stroke-width="1.2"/>
+        ${flake(m.x, m.y)}
+        <text x="${right ? m.x - 18 : m.x + 18}" y="${m.y + 5}" text-anchor="${right ? "end" : "start"}">${m.town}</text>
+      </g>`;
+    }).join("")}
+  </svg>`;
+  // Le tiret de la route doit être plein hors animation
+  document.querySelector(".route").setAttribute("stroke-dasharray", "none");
+
+  // Liste
+  const mk = document.getElementById("markets");
+  mk.innerHTML = markets.map((m, i) => {
+    const past = nextIdx === -1 || i < nextIdx;
+    const when = m.end
+      ? `${fmt(m.start, { weekday: "long" })} ${fmt(m.start, { day: "numeric" })} et ${fmt(m.end, { weekday: "long", day: "numeric", month: "long" })}`
+      : fmt(m.start, { weekday: "long", day: "numeric", month: "long" });
+    return `<article class="m-card snowcap${past ? " past" : ""}" data-i="${i}" style="--i:${i}">
+      ${past ? "" : `<span class="bauble" aria-hidden="true"></span>`}
+      <div class="m-date"><div class="d${m.end ? " range" : ""}">${fmt(m.start, { day: "numeric" })}${m.end ? "–" + fmt(m.end, { day: "numeric" }) : ""}</div><div class="m">${fmt(m.start, { month: "short" }).replace(".", "")}</div></div>
+      <div>
+        <h3>${m.town}</h3>
+        <p class="name">Marché de Noël</p>
+        <p class="info">${when.charAt(0).toUpperCase() + when.slice(1)}${m.commune ? `. ${m.commune}` : ""}.</p>
+        <div class="m-foot">
+          ${past ? `<span class="tag passed">Terminé</span>` : i === nextIdx ? `<span class="tag">Prochain marché</span>` : ""}
+        </div>
+      </div>
+    </article>`;
+  }).join("");
+
+  // Lien carte ⇄ liste
+  const pins = [...document.querySelectorAll(".pin")], cards = [...mk.querySelectorAll(".m-card")];
+  const setActive = i => { pins.forEach((p, k) => p.classList.toggle("is-active", k === i)); cards.forEach((c, k) => c.classList.toggle("is-active", k === i)); };
+  cards.forEach((c, i) => {
+    c.addEventListener("mouseenter", () => setActive(i));
+    c.addEventListener("focusin", () => setActive(i));
+    c.addEventListener("mouseleave", () => setActive(-1));
+  });
+  const goCard = i => {
+    setActive(i);
+    cards[i].scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+    if (!reduce) cards[i].animate([{ transform: "translateX(0)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }], { duration: 320, delay: 350, easing: "cubic-bezier(0.23, 1, 0.32, 1)" });
+  };
+  pins.forEach((p, i) => {
+    p.addEventListener("mouseenter", () => setActive(i));
+    p.addEventListener("mouseleave", () => setActive(-1));
+    p.addEventListener("click", () => goCard(i));
+    p.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goCard(i); } });
+  });
+
+  // Produits des fêtes
+  const fetes = document.getElementById("fetes");
+  fetes.innerHTML = ["Tisane Joyeuses fêtes", "Tisane Meilleurs vœux", "Sucre aux pétales de rose"].map(n => cardHTML(products.find(p => p.name === n))).join("");
+
+
+  // ---------- Décor d'hiver ----------
+  // Guirlande lumineuse
+  (() => {
+    const W = 800, sag = x => 6 + 24 * Math.sin(Math.PI * (x % 200) / 200);
+    let d = "M0 6";
+    for (let x = 4; x <= W; x += 4) d += `L${x} ${sag(x).toFixed(1)}`;
+    const cols = ["#F2B6C6", "#E7C873", "#C6E1CC", "#C5DAEF", "#F28B82"];
+    const bulbs = [];
+    for (let x = 20, k = 0; x < W; x += 33, k++) {
+      const y = sag(x), c = cols[k % cols.length];
+      bulbs.push(`<g><rect x="${x - 2}" y="${y}" width="4" height="4" fill="#2D2944"/><ellipse class="bulb" cx="${x}" cy="${y + 9}" rx="4" ry="6" fill="${c}" style="--delay:${(k % 4) * 0.4}s;filter:drop-shadow(0 0 4px ${c})"/></g>`);
+    }
+    document.getElementById("garland").innerHTML = `<svg viewBox="0 0 800 46"><path d="${d}" fill="none" stroke="#2D2944" stroke-width="1.4"/>${bulbs.join("")}</svg>`;
+  })();
+
+  // Étoiles
+  document.getElementById("stars").insertAdjacentHTML("beforeend", Array.from({ length: 36 }, (_, i) =>
+    `<span class="star" style="left:${(i * 37.7) % 100}%;top:${8 + (i * 23.3) % 52}%;--t:${1.6 + (i % 5) * 0.5}s;--delay:${-(i % 7) * 0.6}s;${i % 4 ? "width:2px;height:2px" : ""}"></span>`).join(""));
+
+  // Flocons sur toute la page
+  document.getElementById("flurry").innerHTML = Array.from({ length: 26 }, (_, i) =>
+    `<span style="left:${(i * 41.3) % 100}%;font-size:${10 + (i % 4) * 4}px;--dur:${12 + (i % 6) * 3}s;--delay:${-i * 1.7}s">${i % 3 ? "❄" : "•"}</span>`).join("");
+
+  // Brins de houx devant les titres
+  const holly = `<svg class="holly" viewBox="0 0 34 26" aria-hidden="true">
+    <path d="M17 18C11 17 6 12 2 13c3-3 2-6 6-6-1 3 4 4 3 6 3-1 4 2 6 5z" fill="#4F7A66" stroke="#2D2944" stroke-width=".9" stroke-linejoin="round"/>
+    <path d="M17 18c6-1 11-6 15-5-3-3-2-6-6-6 1 3-4 4-3 6-3-1-4 2-6 5z" fill="#5F8773" stroke="#2D2944" stroke-width=".9" stroke-linejoin="round"/>
+    <circle cx="14" cy="19" r="3" fill="#B5444F" stroke="#2D2944" stroke-width=".8"/><circle cx="20" cy="19" r="3" fill="#B5444F" stroke="#2D2944" stroke-width=".8"/><circle cx="17" cy="15" r="3" fill="#C9505B" stroke="#2D2944" stroke-width=".8"/></svg>`;
+  document.querySelectorAll(".w-list h2, .fetes h2, .map-wrap h2").forEach(h => h.insertAdjacentHTML("afterbegin", holly));
+
+  // Neige
+  const snowCv = document.getElementById("snow"), sctx = snowCv.getContext("2d");
+  let flakes = [], bursts = [], snowOn = false, raf;
+  function sizeSnow() {
+    const r = snowCv.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+    snowCv.width = r.width * dpr; snowCv.height = r.height * dpr; sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = Math.round(r.width / 9);
+    flakes = Array.from({ length: n }, () => ({ x: Math.random() * r.width, y: Math.random() * r.height, r: 0.8 + Math.random() * 2.2, v: 0.25 + Math.random() * 0.6, p: Math.random() * 6.28 }));
+  }
+  function drawSnow(step) {
+    const w = snowCv.clientWidth, h = snowCv.clientHeight;
+    sctx.clearRect(0, 0, w, h);
+    sctx.fillStyle = "rgba(255,255,255,0.85)";
+    for (const f of flakes) {
+      if (step) { f.y += f.v; f.p += 0.012; f.x += Math.sin(f.p) * 0.35; if (f.y > h + 4) { f.y = -4; f.x = Math.random() * w; } }
+      sctx.beginPath(); sctx.arc(f.x, f.y, f.r, 0, 6.283); sctx.fill();
+    }
+    bursts = bursts.filter(b => b.life > 0);
+    for (const b of bursts) {
+      b.x += b.vx; b.y += b.vy; b.vy += 0.05; b.vx *= 0.98; b.life -= 0.012;
+      sctx.globalAlpha = Math.max(b.life, 0);
+      sctx.fillStyle = b.c;
+      sctx.beginPath(); sctx.arc(b.x, b.y, b.r, 0, 6.283); sctx.fill();
+    }
+    sctx.globalAlpha = 1;
+  }
+  snowCv.parentElement.addEventListener("click", e => {
+    if (reduce || e.target.closest("a, button")) return;
+    const r = snowCv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    const cols = ["#FFFFFF", "#FFF8E1", "#F2B6C6", "#E7C873"];
+    for (let k = 0; k < 28; k++) {
+      const a = Math.random() * 6.283, sp = 1 + Math.random() * 3;
+      bursts.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1, r: 1 + Math.random() * 2.2, life: 1, c: cols[k % 4] });
+    }
+  });
+  function loop() { drawSnow(true); raf = requestAnimationFrame(loop); }
+  function snow(on) {
+    cancelAnimationFrame(raf); snowOn = on;
+    if (!on) return;
+    sizeSnow();
+    if (reduce) drawSnow(false); else loop();
+  }
+  addEventListener("resize", () => { if (snowOn) snow(true); });
+  document.addEventListener("visibilitychange", () => { if (snowOn) { if (document.hidden) cancelAnimationFrame(raf); else snow(true); } });
+
+  // Navigation entre les vues
+  const views = { shop: document.getElementById("view-shop"), hiver: document.getElementById("view-hiver") };
+  const navLinks = [...document.querySelectorAll("nav a[data-view]")];
+  let view = "shop", played = false;
+  function show(next, anchor, instant) {
+    const hash = location.hash;
+    navLinks.forEach(a => a.toggleAttribute("aria-current", next === "hiver" ? a.dataset.view === "hiver" : a.getAttribute("href") === hash));
+    navLinks.forEach(a => a.getAttribute("aria-current") !== null && a.setAttribute("aria-current", "page"));
+    const finish = () => { if (anchor) anchor.scrollIntoView(); else scrollTo(0, 0); };
+    if (next === view) { if (anchor) anchor.scrollIntoView({ behavior: reduce ? "auto" : "smooth" }); else scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); return; }
+    const from = views[view], to = views[next];
+    const swap = () => {
+      from.hidden = true; from.classList.remove("leaving");
+      to.hidden = false;
+      document.body.classList.toggle("hiver", next === "hiver");
+      view = next;
+      if (next === "hiver") {
+        if (!played) { played = true; to.classList.add("play"); setTimeout(() => to.classList.remove("play"), 3200); }
+        snow(true);
+      } else { snow(false); placeIndicator(); }
+      to.classList.add("leaving"); to.offsetWidth; to.classList.remove("leaving");
+      finish();
+    };
+    if (instant) swap(); else { from.classList.add("leaving"); setTimeout(swap, 180); }
+  }
+  function route(instant) {
+    const h = location.hash;
+    if (h === "#marches") show("hiver", null, instant);
+    else show("shop", h && h !== "#top" ? document.querySelector(h) : null, instant);
+  }
+  addEventListener("hashchange", () => route(false));
+  route(true);
+</script>
+
+</body>
+</html>
