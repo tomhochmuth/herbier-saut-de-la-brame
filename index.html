@@ -419,6 +419,29 @@
   .m-date { background: var(--chip); border-right: 0; border-radius: 18px 18px 8px 8px; padding: 10px 6px; align-self: start; }
   .m-card.past { --tint: var(--paper); --chip: #ECEAF1; }
   .map-wrap { background: linear-gradient(160deg, #F7F1FB 0%, var(--paper) 45%, #EEF4FA 100%); }
+
+  /* ---------- Version en pages ---------- */
+  .bar nav { min-width: 0; overflow-x: auto; scrollbar-width: none; padding-block: 4px; }
+  .bar nav::-webkit-scrollbar { display: none; }
+  @media (max-width: 1100px) { .logo .full { display: none; } .logo .short { display: inline; } nav { gap: 18px; } }
+  @media (max-width: 860px) { nav a.opt { display: inline; } }
+  .view > section:first-child:not(.wrap) { margin-top: 0; }
+  #view-histoire .story { border-top: 0; }
+  #view-points .stockists { box-shadow: none; clip-path: none; border-radius: 0; background: transparent; }
+  #view-points { --wash: #FBF5E6; background: var(--wash); }
+  #view-produits .shop { padding-top: 48px; }
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; padding-block: 56px 72px; }
+  .tile { display: flex; flex-direction: column; background: var(--tile); border: 1px solid var(--line); border-radius: 40px 40px 12px 12px; overflow: hidden; color: var(--ink); text-decoration: none; transition: transform 300ms var(--ease-out), box-shadow 300ms ease; }
+  .tile img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+  .t-body { display: flex; flex-direction: column; gap: 2px; padding: 16px 18px 18px; flex: 1; }
+  .t-body b { font-style: italic; font-weight: 500; font-size: 24px; line-height: 1.1; }
+  .t-body span { color: var(--muted); font-size: 16px; line-height: 1.35; }
+  .t-body em { margin-top: auto; padding-top: 12px; font-style: normal; font-family: var(--sc); font-size: 15px; color: var(--rose); }
+  .t-body em::after { content: " →"; display: inline-block; transition: transform 250ms var(--ease-out); }
+  @media (hover: hover) and (pointer: fine) { .tile:hover { transform: translateY(-4px) rotate(-0.4deg); box-shadow: 0 14px 30px -18px rgba(79,59,85,.45); } .tile:hover .t-body em::after { transform: translateX(4px); } }
+  @media (max-width: 960px) { .tiles { grid-template-columns: 1fr 1fr; gap: 12px; } }
+  @media (max-width: 480px) { .t-body b { font-size: 20px; } .t-body span { font-size: 14px; } .t-body { padding: 12px 12px 14px; } }
+  @media (prefers-reduced-motion: no-preference) { @supports (animation-timeline: view()) { .tile { animation: rise linear both; animation-timeline: view(); animation-range: entry 0% entry 80%; } } }
 </style>
 </head>
 <body>
@@ -427,19 +450,20 @@
 
 <header>
   <div class="wrap bar">
-    <a class="logo" href="#top"><span class="full">Herbier du Saut de la Brame</span><span class="short">Herbier</span></a>
+    <a class="logo" href="#accueil"><span class="full">Herbier du Saut de la Brame</span><span class="short">Herbier</span></a>
     <nav aria-label="Navigation principale">
-      <a class="opt" href="#boutique" data-view="shop">Produits</a>
-      <a href="#herbier" data-view="shop">L'herbier</a>
-      <a class="opt" href="#points-de-vente" data-view="shop">Points de vente</a>
-      <a href="#marches" data-view="hiver">Marchés de Noël</a>
-      <a class="opt" href="#contact" data-view="shop">Contact</a>
+      <a href="#accueil">Accueil</a>
+      <a href="#boutique">Produits</a>
+      <a href="#herbier">L'herbier</a>
+      <a href="#points-de-vente">Points de vente</a>
+      <a href="#marches">Marchés de Noël</a>
+      <a href="#contact">Contact</a>
     </nav>
   </div>
 </header>
 
 <main>
-<div class="view" id="view-shop">
+<div class="view" id="view-accueil">
   <section class="wrap">
     <div class="hero">
       <div class="hero-inner">
@@ -456,6 +480,20 @@
     </div>
   </section>
 
+  <section class="promise" id="engagement">
+    <div id="petals" aria-hidden="true"></div>
+    <p class="big">100 % local, 100 % fait main</p>
+    <p class="small">Cultivés en agriculture biologique en Nord Haute-Vienne</p>
+  </section>
+
+  <section class="wrap tiles" aria-label="Découvrir l'herbier">
+    <a class="tile" href="#boutique" style="--tile:#F1E7F1"><img src="img/tisanes.jpg" alt=""><span class="t-body"><b>Nos produits</b><span>Tisanes, sirops, sucres, sels et gomasio</span><em>Voir les produits</em></span></a>
+    <a class="tile" href="#herbier" style="--tile:#F7DFE4"><img src="img/jardin.jpg" alt=""><span class="t-body"><b>Notre histoire</b><span>Le Saut de la Brame, une histoire de racines</span><em>Lire l’histoire</em></span></a>
+    <a class="tile" href="#points-de-vente" style="--tile:#FAF0D8"><img src="img/lavande.jpg" alt=""><span class="t-body"><b>Points de vente</b><span>Dix adresses en circuit court</span><em>Où nous trouver</em></span></a>
+    <a class="tile" href="#marches" style="--tile:#EAEDF2"><img src="img/stand.jpg" alt=""><span class="t-body"><b>Marchés de Noël</b><span>Sept dates en novembre et décembre</span><em>Voir les dates</em></span></a>
+  </section>
+</div>
+<div class="view" id="view-produits" hidden>
   <section class="wrap shop" id="boutique">
     <div class="shop-head">
       <h2>Nos produits</h2>
@@ -466,12 +504,8 @@
     <div class="catalog" id="catalog"></div>
   </section>
 
-  <section class="promise" id="engagement">
-    <div id="petals" aria-hidden="true"></div>
-    <p class="big">100 % local, 100 % fait main</p>
-    <p class="small">Cultivés en agriculture biologique en Nord Haute-Vienne</p>
-  </section>
-
+</div>
+<div class="view" id="view-histoire" hidden>
   <section class="story" id="herbier">
     <div class="wrap">
       <article class="story-inner">
@@ -517,6 +551,8 @@
     </div>
   </section>
 
+</div>
+<div class="view" id="view-points" hidden>
   <section class="wrap stockists" id="points-de-vente">
     <div class="sec-head">
       <h2 class="sec-title">Où trouver nos produits</h2>
@@ -525,6 +561,8 @@
     <div class="shops" id="shops"></div>
   </section>
 
+</div>
+<div class="view" id="view-contact" hidden>
   <section class="wrap contact" id="contact">
     <div class="contact-card">
       <div>
@@ -1005,16 +1043,16 @@
   addEventListener("resize", () => { if (snowOn) snow(true); });
   document.addEventListener("visibilitychange", () => { if (snowOn) { if (document.hidden) cancelAnimationFrame(raf); else snow(true); } });
 
-  // Navigation entre les vues
-  const views = { shop: document.getElementById("view-shop"), hiver: document.getElementById("view-hiver") };
-  const navLinks = [...document.querySelectorAll("nav a[data-view]")];
-  let view = "shop", played = false;
-  function show(next, anchor, instant) {
-    const hash = location.hash;
-    navLinks.forEach(a => a.toggleAttribute("aria-current", next === "hiver" ? a.dataset.view === "hiver" : a.getAttribute("href") === hash));
-    navLinks.forEach(a => a.getAttribute("aria-current") !== null && a.setAttribute("aria-current", "page"));
-    const finish = () => { if (anchor) anchor.scrollIntoView(); else scrollTo(0, 0); };
-    if (next === view) { if (anchor) anchor.scrollIntoView({ behavior: reduce ? "auto" : "smooth" }); else scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); return; }
+  // Navigation entre les pages
+  const views = {}; document.querySelectorAll(".view").forEach(v => views[v.id.slice(5)] = v);
+  const pageOf = { "#boutique": "produits", "#herbier": "histoire", "#points-de-vente": "points", "#contact": "contact", "#marches": "hiver" };
+  const navLinks = [...document.querySelectorAll("nav a")];
+  let view = "accueil", played = false;
+  function show(next, instant) {
+    navLinks.forEach(a => (pageOf[a.getAttribute("href")] || "accueil") === next ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+    const current = navLinks.find(a => a.hasAttribute("aria-current"));
+    if (current) current.scrollIntoView({ block: "nearest", inline: "nearest" });
+    if (next === view) { scrollTo({ top: 0, behavior: instant || reduce ? "auto" : "smooth" }); return; }
     const from = views[view], to = views[next];
     const swap = () => {
       from.hidden = true; from.classList.remove("leaving");
@@ -1024,17 +1062,14 @@
       if (next === "hiver") {
         if (!played) { played = true; to.classList.add("play"); setTimeout(() => to.classList.remove("play"), 3200); }
         snow(true);
-      } else { snow(false); placeIndicator(); }
+      } else snow(false);
+      if (next === "produits") placeIndicator();
       to.classList.add("leaving"); to.offsetWidth; to.classList.remove("leaving");
-      finish();
+      scrollTo(0, 0);
     };
     if (instant) swap(); else { from.classList.add("leaving"); setTimeout(swap, 180); }
   }
-  function route(instant) {
-    const h = location.hash;
-    if (h === "#marches") show("hiver", null, instant);
-    else show("shop", h && h !== "#top" ? document.querySelector(h) : null, instant);
-  }
+  function route(instant) { show(pageOf[location.hash] || "accueil", instant); }
   addEventListener("hashchange", () => route(false));
   route(true);
 </script>
