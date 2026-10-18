@@ -462,15 +462,8 @@
   .logo-mark { height: 36px; width: auto; display: block; }
   .emblem { position: relative; width: 210px; margin: 0 0 6px -8px; isolation: isolate; }
   .emblem img { display: block; width: 100%; height: auto; }
-  .emblem::before { content: ""; position: absolute; inset: -18% -14% -6%; z-index: -1; filter: blur(8px);
-    background: radial-gradient(circle at 28% 38%, rgba(242,182,198,.55), transparent 42%),
-                radial-gradient(circle at 62% 26%, rgba(205,184,230,.55), transparent 38%),
-                radial-gradient(circle at 46% 64%, rgba(242,222,158,.45), transparent 44%),
-                radial-gradient(circle at 80% 58%, rgba(198,225,204,.5), transparent 36%); }
-  @media (prefers-reduced-motion: no-preference) {
-    .emblem::before { animation: wash 9s ease-in-out infinite alternate; }
-    @keyframes wash { from { transform: scale(1) rotate(0); } to { transform: scale(1.06) rotate(4deg); } }
-  }
+  .emblem::before { content: ""; position: absolute; inset: -10% -6% -2%; z-index: -1; filter: blur(14px);
+    background: radial-gradient(ellipse at 50% 45%, rgba(242,182,198,.22), transparent 62%); }
   @media (max-width: 860px) { .emblem { width: 160px; } .logo-mark { height: 30px; } }
 </style>
 </head>
