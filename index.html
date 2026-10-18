@@ -672,6 +672,56 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
+  // ============================================================
+  // Données modifiables par Carine dans son Google Sheet.
+  // Coller ici l'identifiant du tableau (la partie entre /d/ et /edit dans son adresse).
+  // Vide : le site utilise les données intégrées ci-dessous.
+  const SHEET_ID = "";
+  // ============================================================
+
+  const norm = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const esc = s => String(s || "").trim().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  function parseCSV(text) {
+    const rows = []; let row = [], cell = "", q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) { if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+      else if (c === '"') q = true;
+      else if (c === ",") { row.push(cell); cell = ""; }
+      else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(cell); rows.push(row); row = []; cell = ""; }
+      else cell += c;
+    }
+    if (cell || row.length) { row.push(cell); rows.push(row); }
+    const head = (rows.shift() || []).map(h => norm(h).replace(/ /g, ""));
+    return rows.filter(r => r.some(v => v.trim())).map(r => Object.fromEntries(head.map((h, i) => [h, esc(r[i])])));
+  }
+  // Accepte 2026-11-20, 20/11/2026 ou 20/11/26
+  function parseDate(s) {
+    s = String(s || "").trim(); if (!s) return "";
+    let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m) return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
+    m = s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/);
+    if (!m) return "";
+    let [a, b, y] = [+m[1], +m[2], +m[3]]; if (y < 100) y += 2000;
+    const [d, mo] = b > 12 ? [b, a] : [a, b];
+    return `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  }
+  async function loadSheet() {
+    if (!SHEET_ID) return null;
+    const get = async name => {
+      const r = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(name)}`);
+      if (!r.ok) throw new Error(name);
+      return parseCSV(await r.text());
+    };
+    const [gammes, produits, marches, points] = await Promise.all(["Gammes", "Produits", "Marchés", "Points de vente"].map(get));
+    return { gammes, produits, marches, points };
+  }
+  let booted = false;
+  const start = data => { if (!booted) { booted = true; boot(data); } };
+  loadSheet().then(start, () => start(null));
+  setTimeout(() => start(null), 5000); // ponytail: si Google ne répond pas en 5 s, on affiche les données intégrées
+
+function boot(SHEET) {
   const INK = "#4F3B55";
   const R = "rupture", S = "bientot";
 
@@ -726,9 +776,34 @@
     ]}
   ];
 
-  const products = [];
+  let products = [];
   cats.forEach(c => c.items.forEach(([name, ing, status, tint]) =>
     products.push({ id: products.length, cat: c, name, ing, status, tint: tint || c.ribbon, price: c.price })));
+
+  // ---------- Données du tableau ----------
+  const palette = [["#F1E7F1", "#DCCBEB"], ["#F7DFE4", "#EDC0CC"], ["#FAF0D8", "#F2DE9E"], ["#E8EDE3", "#C6E1CC"], ["#EAEDF2", "#C5DAEF"]];
+  const price = v => { const n = parseFloat(String(v).replace(",", ".")); return isNaN(n) ? "" : String(n).replace(".", ","); };
+  const bold = x => x.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+  // Une première ligne séparée devient un petit titre (comme « Gomasio… c'est quoi ? »)
+  const rich = s => { const [a, ...b] = s.split(/\n+/); return b.length ? `<span class="q">${bold(a)}</span>${bold(b.join(" "))}` : bold(a); };
+  if (SHEET && SHEET.produits.length) {
+    const known = Object.fromEntries(cats.map(c => [norm(c.name), c]));
+    const knownTint = Object.fromEntries(cats.flatMap(c => c.items.map(([n, , , t]) => [norm(n), t])));
+    const byName = {};
+    const newCats = SHEET.gammes.filter(g => g.gamme).map((g, i) => {
+      const k = known[norm(g.gamme)], pal = palette[i % palette.length];
+      const c = { key: k ? k.key : norm(g.gamme).replace(/ /g, "-"), name: g.gamme, format: g.format || (k ? k.format : ""), price: price(g.prix) || (k ? k.price : ""),
+        kind: k ? k.kind : "pot", panel: k ? k.panel : pal[0], ribbon: k ? k.ribbon : pal[1], intro: g.introduction ? rich(g.introduction) : (k ? k.intro : ""), items: [] };
+      byName[norm(g.gamme)] = c; return c;
+    });
+    products = [];
+    SHEET.produits.filter(r => r.nom && byName[norm(r.gamme)]).forEach(r => {
+      const c = byName[norm(r.gamme)], d = norm(r.disponibilite);
+      products.push({ id: products.length, cat: c, name: r.nom, ing: r.ingredients, status: d.includes("rupture") ? R : d.includes("bientot") ? S : "",
+        tint: knownTint[norm(r.nom)] || c.ribbon, price: c.price, fetes: norm(r.fetes) === "oui" });
+    });
+    cats.splice(0, cats.length, ...newCats.filter(c => products.some(p => p.cat === c)));
+  }
 
   // Illustrations au trait, dans l'esprit de l'affiche
   const sprig = (x, y, col) => `<path d="M${x} ${y+14}v-14" stroke="${INK}" stroke-width="1.2"/>
@@ -770,7 +845,8 @@
   function leaf(x, y, rot, delay) { return `<g transform="rotate(${rot} ${x} ${y})"><ellipse class="leaf" cx="${x}" cy="${y}" rx="11" ry="4.5" fill="#BFD8C5" stroke="${INK}" stroke-width="1" style="animation-delay:${delay}ms"/></g>`; }
 
   const pick = k => products.find(p => p.cat.key === k && !p.status);
-  const sachet = pick("tisanes"), bottle = products.find(p => p.name === "Sirop de pétales de rose"), jar = pick("sucres");
+  const fake = (kind, ribbon, tint) => ({ cat: { kind, ribbon }, tint: tint || ribbon });
+  const sachet = pick("tisanes") || fake("sachet", "#DCCBEB"), bottle = products.find(p => p.name === "Sirop de pétales de rose") || pick("sirops") || fake("bouteille", "#EDC0CC", "#E8A0B3"), jar = pick("sucres") || pick("sel") || fake("pot", "#F2DE9E", "#F1BCCB");
   const place = (p, x, w, h, delay) => `<g class="item" style="animation-delay:${delay}ms"><svg x="${x}" y="${366 - h}" width="${w}" height="${h}" viewBox="0 0 120 160">${shape(p)}</svg></g>`;
 
   document.getElementById("scene").innerHTML = `
@@ -865,7 +941,8 @@
     ["Vitrine des Monts du Limousin", "Boutique éphémère", "Ambazac", "En été et à Noël"],
     ["Art et Limousin", "Expo-vente", "Mortemart", "En été"]
   ];
-  const tints = cats.map(c => [c.panel, c.ribbon]);
+  if (SHEET && SHEET.points.length) shops.splice(0, shops.length, ...SHEET.points.filter(r => r.nom).map(r => [r.nom, r.type, r.commune, r.saison]));
+  const tints = palette;
   document.getElementById("shops").innerHTML = shops.map(([name, what, where, season], i) => `
     <article class="shop-card" style="--panel:${tints[i % tints.length][0]};--ribbon:${tints[i % tints.length][1]}">
       <svg class="sprig" viewBox="0 0 40 40" aria-hidden="true">${sprig(20, 22, ["#F2B6C6", "#CDB8E6", "#BCD3EC", "#F6E3A1"][i % 4])}</svg>
@@ -892,6 +969,16 @@
     { town: "Le Dorat", start: "2026-12-20", x: 290, y: 250 },
     { town: "La Souterraine", start: "2026-12-23", x: 490, y: 210 }
   ];
+  // Communes connues, placées sur la carte schématique
+  const TOWNS = { "bussiere poitevine": [60, 170], "oradour saint genest": [230, 160], "darnac": [150, 240], "lathus saint remy": [130, 70],
+    "bellac": [230, 350], "le dorat": [290, 250], "la souterraine": [490, 210], "magnac laval": [380, 236], "adriers": [36, 112],
+    "mezieres sur issoire": [110, 330], "mortemart": [170, 396], "chateauponsac": [400, 330], "saint sornin leulac": [430, 150], "ambazac": [470, 392] };
+  if (SHEET && SHEET.marches.length) {
+    const list = SHEET.marches.map(r => ({ town: r.ville, commune: r.commune, start: parseDate(r.date), end: parseDate(r.datedefin), name: r.nom, hours: r.horaires, place: r.lieu }))
+      .filter(m => m.town && m.start).sort((a, b) => a.start.localeCompare(b.start));
+    list.forEach(m => { const p = TOWNS[norm(m.town)]; if (p) [m.x, m.y] = p; if (m.end === m.start) m.end = ""; });
+    markets.splice(0, markets.length, ...list);
+  }
   const day = iso => new Date(iso + "T12:00:00");
   const today = new Date(); today.setHours(12, 0, 0, 0);
   const lastDay = m => day(m.end || m.start);
@@ -979,8 +1066,9 @@
   const flake = (x, y) => [0, 60, 120].map(a => `<path d="M${x} ${y-6}v12" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" transform="rotate(${a} ${x} ${y})"/>`).join("");
   document.getElementById("map").innerHTML = `<svg viewBox="0 0 560 420" role="img" aria-label="Carte schématique des marchés"><defs><linearGradient id="land" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3EAF6"/><stop offset=".5" stop-color="#EEF1F8"/><stop offset="1" stop-color="#E8F1EC"/></linearGradient></defs>
     <path d="M70 60Q150 10 300 30T510 110Q560 200 500 300T330 400Q170 410 80 340T30 180Q30 100 70 60z" fill="url(#land)" stroke="${INK}" stroke-opacity=".3" stroke-dasharray="4 5"/>
-    <path class="route" pathLength="1" d="${smooth(markets)}" fill="none" stroke="${INK}" stroke-width="1.6" stroke-dasharray="1" stroke-linecap="round" opacity=".7"/>
+    <path class="route" pathLength="1" d="${markets.some(m => m.x != null) ? smooth(markets.filter(m => m.x != null)) : "M0 0"}" fill="none" stroke="${INK}" stroke-width="1.6" stroke-dasharray="1" stroke-linecap="round" opacity=".7"/>
     ${markets.map((m, i) => {
+      if (m.x == null) return `<g class="pin" hidden></g>`;
       const right = m.x > 420;
       return `<g class="pin${i < nextIdx || nextIdx === -1 ? " past" : ""}" data-i="${i}" tabindex="0" role="button" aria-label="${m.town}" style="--d:${700 + i * 250}ms">
         ${i === nextIdx ? `<circle class="halo" cx="${m.x}" cy="${m.y}" r="12"/>` : ""}
@@ -1005,14 +1093,14 @@
       <div class="m-date"><div class="d${m.end ? " range" : ""}">${fmt(m.start, { day: "numeric" })}${m.end ? "–" + fmt(m.end, { day: "numeric" }) : ""}</div><div class="m">${fmt(m.start, { month: "short" }).replace(".", "")}</div></div>
       <div>
         <h3>${m.town}</h3>
-        <p class="name">Marché de Noël</p>
-        <p class="info">${when.charAt(0).toUpperCase() + when.slice(1)}${m.commune ? `. ${m.commune}` : ""}.</p>
+        <p class="name">${m.name || "Marché de Noël"}</p>
+        <p class="info">${when.charAt(0).toUpperCase() + when.slice(1)}${m.hours ? `, ${m.hours}` : ""}${m.place ? `. ${m.place}` : ""}${m.commune ? `. ${m.commune}` : ""}.</p>
         <div class="m-foot">
           ${past ? `<span class="tag passed">Terminé</span>` : i === nextIdx ? `<span class="tag">Prochain marché</span>` : ""}
         </div>
       </div>
     </article>`;
-  }).join("");
+  }).join("") || `<p class="more">Les dates des marchés seront bientôt annoncées.</p>`;
 
   // Lien carte ⇄ liste
   const pins = [...document.querySelectorAll(".pin")], cards = [...mk.querySelectorAll(".m-card")];
@@ -1036,7 +1124,9 @@
 
   // Produits des fêtes
   const fetes = document.getElementById("fetes");
-  fetes.innerHTML = ["Tisane Joyeuses fêtes", "Tisane Meilleurs vœux", "Sucre aux pétales de rose"].map(n => cardHTML(products.find(p => p.name === n))).join("");
+  const festive = products.some(p => p.fetes) ? products.filter(p => p.fetes)
+    : ["Tisane Joyeuses fêtes", "Tisane Meilleurs vœux", "Sucre aux pétales de rose"].map(n => products.find(p => p.name === n)).filter(Boolean);
+  fetes.innerHTML = festive.map(cardHTML).join("");
 
 
   // ---------- Décor d'hiver ----------
@@ -1143,6 +1233,7 @@
   function route(instant) { show(pageOf[location.hash] || "accueil", instant); }
   addEventListener("hashchange", () => route(false));
   route(true);
+}
 </script>
 
 </body>
