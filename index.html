@@ -465,6 +465,12 @@
   .emblem::before { content: ""; position: absolute; inset: -10% -6% -2%; z-index: -1; filter: blur(14px);
     background: radial-gradient(ellipse at 50% 45%, rgba(242,182,198,.22), transparent 62%); }
   @media (max-width: 860px) { .emblem { width: 160px; } .logo-mark { height: 30px; } }
+
+  /* Phrases d'introduction des gammes */
+  .cat-intro { max-width: 62ch; margin: 14px auto 0; font-size: 17px; line-height: 1.5; color: var(--ink); text-wrap: pretty; }
+  .cat-intro b { font-weight: 600; }
+  .cat-intro .q { display: block; font-family: var(--sc); font-size: 16px; letter-spacing: .03em; color: var(--rose); margin-bottom: 2px; }
+  @media (max-width: 860px) { .cat-intro { font-size: 16px; } }
 </style>
 </head>
 <body>
@@ -670,7 +676,7 @@
   const R = "rupture", S = "bientot";
 
   const cats = [
-    { key: "tisanes", name: "Tisanes", format: "Sachet de 25 g", price: 6, kind: "sachet", panel: "#F1E7F1", ribbon: "#DCCBEB", items: [
+    { key: "tisanes", name: "Tisanes", format: "Sachet de 25 g", price: 6, kind: "sachet", panel: "#F1E7F1", ribbon: "#DCCBEB", intro: "Cueillies, séchées et préparées avec soin, au creux d’une tasse, les plantes dévoilent leurs parfums, leurs nuances. Pour une pause simple et authentique !", items: [
       ["Tisane Du Centenaire", "reine des prés, ortie, frêne, cassis"],
       ["Tisane Après Bombance", "menthe, mélisse, romarin, monarde, rose"],
       ["Tisane Au grand Air", "sureau, rose, serpolet, lierre terrestre"],
@@ -679,9 +685,12 @@
       ["Tisane De bon matin", "feuille de figuier, romarin, sauge, basilic sacré, achillée millefeuille"],
       ["Tisane Girl Power", "armoise vulgaire, achillée millefeuille, sauge, feuille de framboisier, calendula"],
       ["Tisane Joyeuses fêtes", "feuille de figuier, verveine citronnée, aubépine, cenelle, bleuet, frêne"],
-      ["Tisane Meilleurs vœux", "tilleul, sureau, achillée millefeuille, basilic tulsi, agastache, cassis et groseilles sèches"]
+      ["Tisane Meilleurs vœux", "tilleul, sureau, achillée millefeuille, basilic tulsi, agastache, cassis et groseilles sèches"],
+      ["Tisane Menthes", "menthe chocolat, menthe poivrée, menthe suisse, menthe cannelle"],
+      ["Tisane Verveine citronnée", ""],
+      ["Tisane Feuilles de framboisier", ""]
     ]},
-    { key: "sirops", name: "Sirops", format: "Bouteille de 20 cl", price: 5, kind: "bouteille", panel: "#F7DFE4", ribbon: "#EDC0CC", items: [
+    { key: "sirops", name: "Sirops", format: "Bouteille de 20 cl", price: 5, kind: "bouteille", panel: "#F7DFE4", ribbon: "#EDC0CC", intro: "Élaboré à partir de plantes cueillies et transformées avec soin, ce sirop offre des saveurs naturelles et rafraîchissantes. Sans conservateur, ni colorant. <b>À diluer</b> dans de l’eau plate ou pétillante. Délicieux aussi pour parfumer vos apéritifs : vin blanc, rosé ou boissons pétillantes.", items: [
       ["Sirop de thym", "", "", "#CDB77F"],
       ["Sirop de romarin", "", "", "#AEBF8F"],
       ["Sirop d'aurone cola", "", "", "#8A5A45"],
@@ -693,7 +702,7 @@
       ["Sirop de chatons de châtaignier", "", R, "#D8B66E"],
       ["Sirop de cassis", "", R, "#7A3558"]
     ]},
-    { key: "sucres", name: "Sucres", format: "Pot de 60 g", price: 5, kind: "pot", panel: "#FAF0D8", ribbon: "#F2DE9E", items: [
+    { key: "sucres", name: "Sucres", format: "Pot de 60 g", price: 5, kind: "pot", panel: "#FAF0D8", ribbon: "#F2DE9E", intro: "Élaboré à partir de <b>sucre de betterave bio français</b> et de <b>plantes</b> soigneusement sélectionnées, ce mélange apporte une note douce et parfumée à vos préparations gourmandes. <b>Idéal pour</b> desserts, crèmes desserts, gâteaux, chantilly.", items: [
       ["Sucre aux pétales de rose", "", "", "#F1BCCB"],
       ["Sucre à la fleur de sureau", "", "", "#F3EBC4"],
       ["Sucre à la reine des prés", "", "", "#F5EEDC"],
@@ -701,18 +710,19 @@
       ["Sucre à l'ortie", "", "", "#B7CFA2"],
       ["Sucre au cassis", "", "", "#B7839E"]
     ]},
-    { key: "sel", name: "Sel", format: "Pot de 60 g", price: 5, kind: "pot", panel: "#E8EDE3", ribbon: "#C6E1CC", items: [
+    { key: "sel", name: "Sel", format: "Pot de 60 g", price: 5, kind: "pot", panel: "#E8EDE3", ribbon: "#C6E1CC", intro: "Élaboré à partir de <b>sel fin non traité de Camargue</b> et de <b>plantes</b> cueillies avec soin, ce mélange subtil parfume délicatement vos plats du quotidien. À déguster avec crudités, pâtes, riz, salades ou légumes.", items: [
       ["Sel à l'ail des ours", "", R, "#C3D9AE"],
       ["Sel à l'ortie", "", "", "#C8D7B8"],
       ["Sel aux légumes", "persil, courgette, blette, oignon", "", "#DCE3C8"],
       ["Sel à la sauge", "", "", "#CBD5C6"],
       ["Sel pour poisson", "estragon, fenouil, laurier, ciboulette", "", "#D6E1D2"]
     ]},
-    { key: "gomasio", name: "Gomasio", format: "Pot de 60 g", price: 6, kind: "pot", panel: "#EAEDF2", ribbon: "#C5DAEF", items: [
+    { key: "gomasio", name: "Gomasio", format: "Pot de 60 g", price: 6, kind: "pot", panel: "#EAEDF2", ribbon: "#C5DAEF", intro: "<span class=\"q\">Gomasio… c’est quoi ?</span>Le <b>gomasio</b> est un condiment à base de graines de sésame grillées, de sel marin et de plantes aromatiques. Inspiré de la tradition japonaise, il relève délicatement vos plats avec son goût légèrement grillé et parfumé. <b>À saupoudrer sur</b> : crudités, légumes, riz, pâtes, soupes ou salades.", items: [
       ["Gomasio ail des ours", "", R, "#D8D2B4"],
       ["Gomasio ortie", "", "", "#CFCDB0"],
       ["Gomasio des bois", "au lamier pourpre", "", "#D9C7BF"],
-      ["Gomasio piment", "", "", "#E2B9A6"]
+      ["Gomasio piment", "", "", "#E2B9A6"],
+      ["Gomasio provençal", "sauge, romarin, thym, basilic pourpre", "", "#CBD3B8"]
     ]}
   ];
 
@@ -807,7 +817,7 @@
   function renderCatalog(key) {
     catalog.innerHTML = cats.filter(c => key === "tout" || c.key === key).map(c => `
       <section class="cat" style="--panel:${c.panel};--ribbon:${c.ribbon}">
-        <div class="cat-head"><h3>${c.name}</h3><span class="ribbon">${c.format} – ${c.price} €</span></div>
+        <div class="cat-head"><h3>${c.name}</h3><span class="ribbon">${c.format} – ${c.price} €</span>${c.intro ? `<p class="cat-intro">${c.intro}</p>` : ""}</div>
         <div class="grid">${products.filter(p => p.cat === c).map(cardHTML).join("")}</div>
       </section>`).join("");
   }
