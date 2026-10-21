@@ -486,6 +486,30 @@
   .cat-intro b { font-weight: 600; }
   .cat-intro .q { display: block; font-family: var(--sc); font-size: 16px; letter-spacing: .03em; color: var(--rose); margin-bottom: 2px; }
   @media (max-width: 860px) { .cat-intro { font-size: 16px; } }
+
+  /* ---------- Espace de gestion (#admin) ---------- */
+  .admin { padding-block: 48px 72px; max-width: 980px; }
+  .admin .sec-title { margin: 4px 0 10px; }
+  .admin-lead { color: var(--muted); font-style: italic; max-width: 62ch; margin: 0 0 18px; }
+  .admin-status { display: inline-flex; align-items: center; gap: 10px; padding: 8px 16px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); font-size: 16px; margin-bottom: 26px; }
+  .admin-status::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--dot, #C9A64A); }
+  .admin-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .admin-card { display: flex; flex-direction: column; gap: 4px; background: var(--tile); border: 1px solid var(--line); border-radius: 32px 32px 10px 10px; padding: 22px 24px; color: var(--ink); text-decoration: none; transition: transform 250ms var(--ease-out); }
+  .admin-card b { font-style: italic; font-weight: 500; font-size: 26px; line-height: 1.1; }
+  .admin-card span { color: var(--muted); }
+  .admin-card em { margin-top: 10px; font-style: normal; font-family: var(--sc); color: var(--rose); }
+  .admin-card em::after { content: " →"; }
+  .admin-card[aria-disabled="true"] { opacity: .55; pointer-events: none; }
+  @media (hover: hover) and (pointer: fine) { .admin-card:hover { transform: translateY(-3px); } }
+  .admin-help { margin-top: 28px; background: var(--paper); border: 1px solid var(--line); border-radius: 28px 28px 10px 10px; padding: 22px 26px; }
+  .admin-help h2 { font-style: italic; font-weight: 500; font-size: 26px; margin: 0 0 8px; }
+  .admin-help ul { margin: 0 0 10px; padding-left: 20px; }
+  .admin-help li { margin: 4px 0; }
+  .admin-help p { margin: 0; color: var(--muted); font-style: italic; }
+  .admin-help code { font-family: var(--serif); font-weight: 700; background: #F7DFE4; padding: 0 6px; border-radius: 4px; }
+  .admin-links { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 22px; font-family: var(--sc); }
+  .admin-links a { color: var(--rose); }
+  @media (max-width: 700px) { .admin-grid { grid-template-columns: 1fr; } .admin-card b { font-size: 22px; } }
 </style>
 </head>
 <body>
@@ -671,6 +695,41 @@
     <h2>Pour les fêtes</h2>
     <p class="lead">Les tisanes de fin d'année sont disponibles pour la saison. À retrouver sur les stands, dans la limite des stocks.</p>
     <div class="grid" id="fetes"></div>
+  </section>
+</div>
+<div class="view" id="view-admin" hidden>
+  <section class="wrap admin">
+    <p class="kicker">Espace de Carine</p>
+    <h1 class="sec-title">Gérer mon site</h1>
+    <p class="admin-lead">Les produits, les marchés et les points de vente se modifient dans votre tableau Google. Le site se met à jour tout seul : il suffit de recharger la page.</p>
+    <div class="admin-status" id="admin-status"></div>
+    <div class="admin-grid">
+      <a class="admin-card" id="admin-sheet" target="_blank" rel="noopener" style="--tile:#F1E7F1">
+        <b>Modifier mes produits</b><span>Ajouter, retirer, mettre en rupture, changer un prix ou un texte de gamme</span><em>Ouvrir mon tableau</em></a>
+      <a class="admin-card" id="admin-markets" target="_blank" rel="noopener" style="--tile:#EAEDF2">
+        <b>Mes marchés</b><span>Ajouter une date, un horaire ou un lieu</span><em>Onglet « Marchés »</em></a>
+      <a class="admin-card" id="admin-shops" target="_blank" rel="noopener" style="--tile:#FAF0D8">
+        <b>Mes points de vente</b><span>Ajouter ou retirer une boutique</span><em>Onglet « Points de vente »</em></a>
+      <a class="admin-card" href="mode-d-emploi.pdf" target="_blank" rel="noopener" style="--tile:#F7DFE4">
+        <b>Mode d’emploi</b><span>Une page qui explique tout, à garder sous la main</span><em>Ouvrir le PDF</em></a>
+    </div>
+    <div class="admin-help">
+      <h2>Les règles à retenir</h2>
+      <ul>
+        <li>Ne jamais renommer les onglets ni la première ligne de chaque onglet.</li>
+        <li><b>Rupture</b> : écrire <code>rupture</code> dans la colonne Disponibilité, effacer quand le produit revient.</li>
+        <li><b>Pour les fêtes</b> : écrire <code>oui</code> dans la colonne Fêtes.</li>
+        <li><b>Dates</b> au format <code>20/11/2026</code>.</li>
+        <li><b>Gras</b> dans un texte de gamme : <code>**comme ceci**</code>.</li>
+        <li>Un changement peut mettre quelques minutes à apparaître sur le site.</li>
+      </ul>
+      <p>L’histoire, les photos et les coordonnées ne sont pas dans le tableau : il suffit de demander à Tom.</p>
+    </div>
+    <div class="admin-links">
+      <a href="https://business.google.com" target="_blank" rel="noopener">Ma fiche Google</a>
+      <a href="https://search.google.com/search-console" target="_blank" rel="noopener">Google Search Console</a>
+      <a href="#accueil">Retour au site</a>
+    </div>
   </section>
 </div>
 </main>
@@ -1218,9 +1277,22 @@ function boot(SHEET) {
   addEventListener("resize", () => { if (snowOn) snow(true); });
   document.addEventListener("visibilitychange", () => { if (snowOn) { if (document.hidden) cancelAnimationFrame(raf); else snow(true); } });
 
+  // ---------- Espace de gestion ----------
+  (() => {
+    const edit = SHEET_ID ? `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit` : "";
+    ["admin-sheet", "admin-markets", "admin-shops"].forEach(id => {
+      const a = document.getElementById(id);
+      if (edit) a.href = edit; else { a.removeAttribute("href"); a.setAttribute("aria-disabled", "true"); }
+    });
+    const st = document.getElementById("admin-status");
+    if (!SHEET_ID) st.textContent = "Le tableau n’est pas encore relié au site : les données affichées sont celles intégrées au site.";
+    else if (SHEET) { st.style.setProperty("--dot", "#6FA57E"); st.textContent = `Tableau relié : ${products.length} produits, ${markets.length} marchés et ${shops.length} points de vente lus.`; }
+    else { st.style.setProperty("--dot", "#C25B5B"); st.textContent = "Le tableau n’a pas pu être lu : vérifiez qu’il est partagé en « Tous les utilisateurs disposant du lien »."; }
+  })();
+
   // Navigation entre les pages
   const views = {}; document.querySelectorAll(".view").forEach(v => views[v.id.slice(5)] = v);
-  const pageOf = { "#boutique": "produits", "#herbier": "histoire", "#points-de-vente": "points", "#contact": "contact", "#marches": "hiver" };
+  const pageOf = { "#boutique": "produits", "#herbier": "histoire", "#points-de-vente": "points", "#contact": "contact", "#marches": "hiver", "#admin": "admin" };
   const navLinks = [...document.querySelectorAll("nav a")];
   let view = "accueil", played = false;
   function show(next, instant) {
